@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<title>Fly Brain Replay</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root { --bg:#07090f; --fg:#d7dbe4; --dim:#7b8496; --accent:#ffcf4a; --panel:#0f131c; --line:#222a38; }
+  html,body { margin:0; height:100%; background:var(--bg); color:var(--fg); font:13px/1.4 system-ui,"Segoe UI",sans-serif; overflow:hidden; }
+  #c3d { position:absolute; inset:0; width:100%; height:100%; }
+  #hud { position:absolute; left:16px; top:14px; pointer-events:none; }
+  #hud h1 { font-size:15px; margin:0 0 4px; font-weight:600; }
+  #hud .t { font-size:28px; font-variant-numeric:tabular-nums; color:var(--accent); }
+  #hud .s { color:var(--dim); }
+  #legend { position:absolute; right:16px; top:14px; background:rgba(15,19,28,.85); border:1px solid var(--line); border-radius:8px; padding:8px 10px; font-size:12px; }
+  #legend div { display:flex; align-items:center; gap:6px; margin:2px 0; }
+  #legend i { width:10px; height:10px; border-radius:50%; display:inline-block; }
+  #ctl { position:absolute; left:0; right:0; bottom:0; background:rgba(15,19,28,.92); border-top:1px solid var(--line); padding:8px 16px 10px; }
+  #row { display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+  button { background:#1b2230; color:var(--fg); border:1px solid #2e3849; border-radius:6px; padding:5px 12px; cursor:pointer; }
+  button:hover { background:#26304a; }
+  input[type=range] { flex:1; min-width:160px; }
+  label { color:var(--dim); display:flex; gap:6px; align-items:center; }
+  #scope { width:100%; height:190px; display:block; margin-top:8px; background:#0a0d15; border:1px solid var(--line); border-radius:6px; }
+  #tip { position:absolute; pointer-events:none; background:rgba(10,13,21,.95); border:1px solid #33405a; border-radius:6px; padding:6px 8px; font-size:12px; display:none; white-space:nowrap; }
+</style>
+</head>
+<body>
+<canvas id="c3d"></canvas>
+<div id="hud">
+  <h1 id="title"></h1>
+  <div class="t"><span id="tms">0.0</span> ms</div>
+  <div class="s"><span id="nact">0</span> 个神经元已放电 · <span id="nsp">0</span> 次脉冲 · 当前帧 <span id="nflash">0</span> 个在放电</div>
+  <div class="s" style="margin-top:6px">拖动旋转 · 滚轮缩放 · 右键平移 · 鼠标悬停已放电神经元看类型</div>
+</div>
+<div id="legend"></div>
+<div id="tip"></div>
+<div id="ctl">
+  <div id="row">
+    <button id="play">▶ 播放</button>
+    <button id="reset">⟲ 重置</button>
+    <label>速度 <select id="speed">
+      <option value="0.01">1/100 实时</option><option value="0.03">1/30</option>
+      <option value="0.1" selected>1/10</option><option value="0.3">1/3</option><option value="1">实时</option>
+    </select></label>
+    <label><input type="checkbox" id="optic" checked> 显示视叶（77k 个从不放电的神经元）</label>
+    <label>余辉 <input type="range" id="decay" min="0.80" max="0.99" step="0.01" value="0.93" style="width:90px"></label>
+    <input type="range" id="seek" min="0" max="1" step="1" value="0">
+  </div>
+  <canvas id="scope"></canvas>
+</div>
+
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+} }
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+const D = /*__DATA__*/null;
+const dec = (b64, T) => { const s = atob(b64); const u = new Uint8Array(s.length); for (let i=0;i<s.length;i++) u[i]=s.charCodeAt(i); return new T(u.buffer); };
+const pos = dec(D.pos_b64, Float32Array);
+const sc = dec(D.sc_b64, Uint8Array);
+const spT = dec(D.spike_t_b64, Uint16Array);
+const spN = dec(D.spike_n_b64, Uint32Array);
+const traces = dec(D.trace_b64, Float32Array);
+const N = D.n, STEPS = D.steps, DT = D.dt;
+document.getElementById('title').textContent = D.exp + '  ·  ' + N.toLocaleString() + ' 个神经元';
+
+// ---------- colors per super_class (dim base) ----------
+const palette = {
+  optic:[0.16,0.20,0.30], central:[0.35,0.45,0.70], sensory:[0.30,0.60,0.45],
+  visual_projection:[0.30,0.35,0.55], ascending:[0.55,0.40,0.65], descending:[0.75,0.45,0.35],
+  sensory_ascending:[0.35,0.55,0.55], visual_centrifugal:[0.30,0.35,0.55],
+  motor:[0.85,0.35,0.35], endocrine:[0.70,0.55,0.30], unknown:[0.25,0.25,0.25] };
+const legend = document.getElementById('legend');
+for (const c of ['central','sensory','descending','ascending','motor','optic']) {
+  const p = palette[c]; const d = document.createElement('div');
+  d.innerHTML = `<i style="background:rgb(${p.map(v=>v*255|0)})"></i>${c}`; legend.appendChild(d);
+}
+legend.insertAdjacentHTML('beforeend','<div><i style="background:#ffcf4a;box-shadow:0 0 6px #ffcf4a"></i>正在放电</div><div><i style="background:#ff4d4d"></i>被刺激的神经元</div>');
+
+// ---------- three.js ----------
+const canvas = document.getElementById('c3d');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias:false });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(45, 1, 1, 20000);
+camera.position.set(0, -650, 420); camera.up.set(0, 0, -1);
+const controls = new OrbitControls(camera, canvas); controls.enableDamping = true;
+
+const geo = new THREE.BufferGeometry();
+geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+const base = new Float32Array(N*3);
+const stimSet = new Set(D.stim_idx);
+for (let i=0;i<N;i++){ const p = palette[D.classes[sc[i]]]; base[i*3]=p[0]; base[i*3+1]=p[1]; base[i*3+2]=p[2]; }
+for (const i of stimSet){ base[i*3]=1; base[i*3+1]=0.3; base[i*3+2]=0.3; }
+geo.setAttribute('base', new THREE.BufferAttribute(base, 3));
+const flash = new Float32Array(N);
+const flashAttr = new THREE.BufferAttribute(flash, 1); flashAttr.setUsage(THREE.DynamicDrawUsage);
+geo.setAttribute('flash', flashAttr);
+const vis = new Float32Array(N).fill(1);
+const visAttr = new THREE.BufferAttribute(vis, 1); geo.setAttribute('vis', visAttr);
+
+const mat = new THREE.ShaderMaterial({
+  transparent:true, depthWrite:false, blending:THREE.AdditiveBlending,
+  uniforms:{ pr:{value:renderer.getPixelRatio()} },
+  vertexShader:`
+    attribute vec3 base; attribute float flash; attribute float vis;
+    varying vec3 vc; varying float va; uniform float pr;
+    void main(){
+      vec4 mv = modelViewMatrix * vec4(position,1.0);
+      float f = flash;
+      vc = mix(base*0.55, vec3(1.0,0.85,0.35), f);
+      va = vis * mix(0.35, 1.0, f);
+      float size = mix(1.6, 9.0, f) * pr * (600.0 / -mv.z);
+      gl_PointSize = clamp(size, vis*1.0, 40.0);
+      gl_Position = projectionMatrix * mv;
+    }`,
+  fragmentShader:`
+    varying vec3 vc; varying float va;
+    void main(){
+      vec2 d = gl_PointCoord - 0.5; float r = dot(d,d);
+      if (r > 0.25) discard;
+      float a = va * smoothstep(0.25, 0.0, r);
+      gl_FragColor = vec4(vc, a);
+    }`
+});
+const points = new THREE.Points(geo, mat); scene.add(points);
+
+function resize(){
+  const h = innerHeight - document.getElementById('ctl').offsetHeight;
+  renderer.setSize(innerWidth, h, false); canvas.style.height = h+'px';
+  camera.aspect = innerWidth/h; camera.updateProjectionMatrix();
+}
+addEventListener('resize', resize);
+
+// ---------- playback state ----------
+let step = 0, playing = false, spikePtr = 0, nAct = 0, nSp = 0;
+const everFired = new Uint8Array(N);
+const seek = document.getElementById('seek'); seek.max = STEPS-1;
+const speedSel = document.getElementById('speed'), decaySl = document.getElementById('decay');
+function resetTo(s){
+  flash.fill(0); everFired.fill(0); nAct = 0; nSp = 0; spikePtr = 0; step = 0;
+  advance(s, false);
+}
+function advance(target, glow=true){
+  const d = +decaySl.value;
+  if (glow){ const k = Math.pow(d, Math.max(1,(target-step))); for (let i=0;i<N;i++) flash[i]*=k; }
+  while (spikePtr < spT.length && spT[spikePtr] < target){
+    const n = spN[spikePtr++]; nSp++;
+    if (glow) flash[n] = 1;
+    if (!everFired[n]){ everFired[n]=1; nAct++; }
+  }
+  step = target; flashAttr.needsUpdate = true;
+}
+document.getElementById('play').onclick = () => { playing = !playing; document.getElementById('play').textContent = playing ? '❚❚ 暂停' : '▶ 播放'; };
+document.getElementById('reset').onclick = () => { playing=false; document.getElementById('play').textContent='▶ 播放'; resetTo(0); };
+seek.oninput = () => resetTo(+seek.value);
+document.getElementById('optic').onchange = e => {
+  const show = e.target.checked; const opt = D.classes.indexOf('optic');
+  for (let i=0;i<N;i++) vis[i] = (sc[i]===opt && !show) ? 0 : 1; visAttr.needsUpdate = true;
+};
+
+// ---------- oscilloscope ----------
+const scope = document.getElementById('scope'), sctx = scope.getContext('2d');
+const K = D.traces.length, WIN = 2000; // 200 ms window in steps
+function drawScope(){
+  const W = scope.clientWidth, H = scope.clientHeight;
+  if (scope.width !== W*devicePixelRatio){ scope.width = W*devicePixelRatio; scope.height = H*devicePixelRatio; }
+  sctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+  sctx.clearRect(0,0,W,H);
+  const left = 150, rowH = H / K;
+  const t0 = Math.max(0, step - WIN);
+  for (let k=0;k<K;k++){
+    const y0 = k*rowH, info = D.traces[k];
+    sctx.fillStyle = info.stim ? '#ff6b6b' : '#c8cfdb'; sctx.font = '11px system-ui';
+    sctx.fillText((info.stim?'刺激 ':'')+(info.type||info.cls||'?')+'  '+info.nt.slice(0,4), 6, y0+rowH*0.55);
+    sctx.fillStyle = '#5a6478'; sctx.font='10px system-ui';
+    sctx.fillText(info.rate.toFixed(0)+' Hz', 108, y0+rowH*0.55);
+    sctx.strokeStyle = '#1e2532'; sctx.beginPath(); sctx.moveTo(left, y0+rowH); sctx.lineTo(W, y0+rowH); sctx.stroke();
+    sctx.strokeStyle = info.stim ? '#ff8a8a' : '#6fb3ff'; sctx.lineWidth = 1; sctx.beginPath();
+    const vmin = D.v_rest - 3, vmax = D.v_th + 1;
+    for (let s=t0; s<=step; s++){
+      const v = traces[k*STEPS + s];
+      const x = left + (s - t0) / WIN * (W-left);
+      const y = y0 + rowH - (v - vmin)/(vmax-vmin) * rowH*0.9 - rowH*0.05;
+      s===t0 ? sctx.moveTo(x,y) : sctx.lineTo(x,y);
+    }
+    sctx.stroke();
+  }
+  sctx.fillStyle = '#5a6478'; sctx.font='10px system-ui';
+  sctx.fillText('膜电位，最近 200 ms（'+D.v_rest+' mV 静息 → '+D.v_th+' mV 阈值即放电）', left, 10);
+}
+
+// ---------- hover tooltip over active neurons ----------
+const tip = document.getElementById('tip');
+const ray = new THREE.Raycaster(); ray.params.Points.threshold = 6;
+const activeIdx = Object.keys(D.active).map(Number);
+const activeGeo = new THREE.BufferGeometry();
+const ap = new Float32Array(activeIdx.length*3);
+activeIdx.forEach((i,k)=>{ ap[k*3]=pos[i*3]; ap[k*3+1]=pos[i*3+1]; ap[k*3+2]=pos[i*3+2]; });
+activeGeo.setAttribute('position', new THREE.BufferAttribute(ap,3));
+const activePts = new THREE.Points(activeGeo, new THREE.PointsMaterial({size:0.001, visible:false}));
+canvas.addEventListener('mousemove', e => {
+  const r = canvas.getBoundingClientRect();
+  const m = new THREE.Vector2(((e.clientX-r.left)/r.width)*2-1, -((e.clientY-r.top)/r.height)*2+1);
+  ray.setFromCamera(m, camera);
+  const hits = ray.intersectObject(activePts, false);
+  if (hits.length){ const i = activeIdx[hits[0].index]; const a = D.active[i];
+    tip.style.display='block'; tip.style.left=(e.clientX+14)+'px'; tip.style.top=(e.clientY+10)+'px';
+    tip.innerHTML = `<b>${a.type||a.cls||'(未命名)'}</b> ${stimSet.has(i)?'<span style="color:#ff6b6b">刺激</span>':''}<br>`+
+      `${a.sc} · ${a.nt} · ${a.side}<br>${a.rate.toFixed(0)} Hz · id ${a.id}`;
+  } else tip.style.display='none';
+});
+
+// ---------- loop ----------
+let last = performance.now();
+function frame(now){
+  const dtReal = (now-last)/1000; last = now;
+  if (playing){
+    const stepsPerSec = 1000/DT * +speedSel.value;
+    let target = Math.min(STEPS-1, step + dtReal*stepsPerSec);
+    if (target >= STEPS-1){ playing=false; document.getElementById('play').textContent='▶ 播放'; }
+    advance(Math.floor(target)); seek.value = step;
+  }
+  let nf=0; for (let i=0;i<N;i++) if (flash[i]>0.5) nf++;
+  document.getElementById('tms').textContent = (step*DT).toFixed(1);
+  document.getElementById('nact').textContent = nAct; document.getElementById('nsp').textContent = nSp;
+  document.getElementById('nflash').textContent = nf;
+  controls.update(); renderer.render(scene, camera); drawScope();
+  requestAnimationFrame(frame);
+}
+resize(); resetTo(0); requestAnimationFrame(frame);
+</script>
+</body>
+</html>

@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<title>Fly Brain Console</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root { --bg:#07090f; --fg:#d7dbe4; --dim:#7b8496; --accent:#ffcf4a; --panel:#0f131c; --line:#222a38; --red:#ff6b6b; --blue:#6fb3ff; }
+  html,body { margin:0; height:100%; background:var(--bg); color:var(--fg); font:13px/1.4 system-ui,"Segoe UI",sans-serif; overflow:hidden; }
+  #app { display:grid; grid-template-columns:300px 1fr; grid-template-rows:1fr 210px; height:100vh; }
+  #side { grid-row:1/3; background:var(--panel); border-right:1px solid var(--line); display:flex; flex-direction:column; min-height:0; }
+  #view { position:relative; min-height:0; overflow:hidden; }
+  #c3d { position:absolute; inset:0; width:100%; height:100%; }
+  #bottom { background:var(--panel); border-top:1px solid var(--line); display:grid; grid-template-columns:1fr minmax(200px, 26%); min-height:0; }
+  #scope { width:100%; height:100%; display:block; }
+  #log { font:11px/1.5 ui-monospace,Consolas,monospace; color:#9aa4b8; overflow:auto; padding:6px 8px; border-left:1px solid var(--line); }
+  #log .c { color:var(--accent); } #log .e { color:var(--red); }
+  section { padding:10px 12px; border-bottom:1px solid var(--line); }
+  h2 { font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--dim); margin:0 0 6px; }
+  button { background:#1b2230; color:var(--fg); border:1px solid #2e3849; border-radius:6px; padding:5px 10px; cursor:pointer; font-size:12px; }
+  button:hover { background:#26304a; } button.on { background:#3a2f12; border-color:#8a6d1e; color:var(--accent); }
+  button.danger { border-color:#6b2a2a; }
+  input[type=text], input[type=number] { background:#0a0d15; border:1px solid #2e3849; color:var(--fg); border-radius:6px; padding:5px 8px; width:100%; box-sizing:border-box; }
+  .row { display:flex; gap:6px; align-items:center; margin:4px 0; flex-wrap:wrap; }
+  .kv { display:grid; grid-template-columns:auto 1fr; gap:2px 10px; font-variant-numeric:tabular-nums; }
+  .kv b { color:var(--accent); font-weight:600; }
+  #hits { max-height:160px; overflow:auto; margin-top:4px; }
+  #hits div, #stimlist div { display:flex; justify-content:space-between; padding:3px 6px; border-radius:4px; cursor:pointer; }
+  #hits div:hover { background:#1b2230; }
+  #stimlist div { cursor:default; } #stimlist small { color:var(--dim); }
+  #stimlist button { padding:1px 6px; font-size:11px; }
+  #hud { position:absolute; left:14px; top:12px; pointer-events:none; }
+  #hud .t { font-size:26px; color:var(--accent); font-variant-numeric:tabular-nums; }
+  #hud .s { color:var(--dim); }
+  #legend { position:absolute; right:12px; top:12px; background:rgba(15,19,28,.85); border:1px solid var(--line); border-radius:8px; padding:6px 10px; font-size:11px; }
+  #legend div { display:flex; align-items:center; gap:6px; margin:2px 0; } #legend i { width:9px; height:9px; border-radius:50%; display:inline-block; }
+  #tip { position:absolute; pointer-events:none; background:rgba(10,13,21,.95); border:1px solid #33405a; border-radius:6px; padding:6px 8px; font-size:12px; display:none; white-space:nowrap; z-index:5; }
+  #status { position:absolute; left:14px; bottom:10px; font-size:11px; color:var(--dim); pointer-events:none; }
+  #status.bad { color:var(--red); }
+  label.sm { color:var(--dim); font-size:11px; }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="side">
+    <section>
+      <h2>运行</h2>
+      <div class="row">
+        <button id="run">❚❚ 暂停</button>
+        <button id="reset">⟲ 重置状态</button>
+        <button id="clear" class="danger">✕ 清空刺激</button>
+      </div>
+      <div class="kv" style="margin-top:6px">
+        <span>速度上限</span><select id="speedcap" style="font-size:11px"><option value="0.25">1/4 实时</option><option value="0.5">1/2 实时</option><option value="1" selected>1× 实时</option><option value="2">2×</option><option value="0">不限（GPU 最快）</option></select>
+        <span>脑时间</span><b id="tms">0</b>
+        <span>速度</span><b id="ratio">–</b>
+        <span>每步 GPU</span><b id="stepms">–</b>
+        <span>累计放电神经元</span><b id="nact">0</b>
+        <span>当前放电率</span><b id="sps">0</b>
+      </div>
+    </section>
+    <section>
+      <h2>预设实验</h2>
+      <div class="row" id="presets"></div>
+      <label class="sm">点一下就加上对应的刺激，可叠加</label>
+    </section>
+    <section>
+      <h2>按细胞类型刺激</h2>
+      <input type="text" id="q" placeholder="搜索类型，如 LB3、P9、DNa、MBON、KC …">
+      <div class="row" style="margin-top:6px">
+        <label class="sm">频率 Hz</label><input type="number" id="rate" value="150" min="1" max="500" style="width:80px">
+        <label class="sm">侧</label>
+        <select id="side"><option value="">两侧</option><option value="left">左</option><option value="right">右</option></select>
+      </div>
+      <div id="hits"></div>
+    </section>
+    <section style="flex:1; overflow:auto; min-height:60px">
+      <h2>当前刺激 <small id="nstim" style="color:var(--dim)"></small></h2>
+      <div id="stimlist"></div>
+    </section>
+    <section style="max-height:170px; overflow:auto">
+      <h2 style="display:flex; justify-content:space-between; align-items:center">示波器探针 <small id="nprobe" style="color:var(--dim); text-transform:none"></small> <button id="clearprobe" style="padding:1px 8px; font-size:11px">清空</button></h2>
+      <div id="probelist"></div>
+    </section>
+    <section>
+      <h2>显示</h2>
+      <div class="row">
+        <label class="sm"><input type="checkbox" id="optic" checked> 视叶</label>
+        <label class="sm">余辉 <input type="range" id="decay" min="0.80" max="0.99" step="0.01" value="0.94" style="width:80px"></label>
+        <button id="autoprobe" title="把示波器切到放电最猛的 8 个下游神经元">示波器→最活跃</button>
+      </div>
+    </section>
+  </div>
+  <div id="view">
+    <canvas id="c3d"></canvas>
+    <div id="hud"><div class="t"><span id="tms2">0.0</span> ms</div><div class="s">拖动旋转 · 滚轮缩放 · 右键平移 · 悬停放电神经元看类型 · 点击加入示波器</div></div>
+    <div id="legend"></div>
+    <div id="tip"></div>
+    <div id="status">连接中…</div>
+  </div>
+  <div id="bottom">
+    <canvas id="scope"></canvas>
+    <div id="log"></div>
+  </div>
+</div>
+
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+} }
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+const $ = id => document.getElementById(id);
+const logEl = $('log');
+function log(msg, cls=''){ const d=document.createElement('div'); d.className=cls; d.textContent=new Date().toLocaleTimeString()+'  '+msg; logEl.appendChild(d); logEl.scrollTop=logEl.scrollHeight; if(logEl.children.length>400) logEl.firstChild.remove(); }
+
+// ---------- load static data ----------
+const fetchBin = (u,T) => fetch(u).then(r=>r.arrayBuffer()).then(b=>new T(b));
+const [M, pos, sc, tcode, scode, ntcode, ids] = await Promise.all([
+  fetch('/api/meta').then(r=>r.json()),
+  fetchBin('/api/pos.bin', Float32Array), fetchBin('/api/sc.bin', Uint8Array),
+  fetchBin('/api/tcode.bin', Uint16Array), fetchBin('/api/scode.bin', Uint8Array),
+  fetchBin('/api/ntcode.bin', Uint8Array), fetch('/api/ids').then(r=>r.json()),
+]);
+const N = M.n, DT = M.dt, SIDES = ['', 'left', 'right', 'center'];
+log(`已加载 ${N.toLocaleString()} 个神经元，${M.types.length} 种细胞类型，设备 ${M.device}，内核 ${M.mode}，dt ${M.dt} ms，每块 ${M.spb} 步`);
+const typeOf = i => M.types[tcode[i]] || '(未命名)';
+const describe = i => `${typeOf(i)} · ${M.classes[sc[i]]} · ${M.nts[ntcode[i]]} · ${SIDES[scode[i]]}`;
+
+// ---------- three.js ----------
+const palette = { optic:[0.16,0.20,0.30], central:[0.35,0.45,0.70], sensory:[0.30,0.60,0.45], visual_projection:[0.30,0.35,0.55], ascending:[0.55,0.40,0.65], descending:[0.75,0.45,0.35], sensory_ascending:[0.35,0.55,0.55], visual_centrifugal:[0.30,0.35,0.55], motor:[0.85,0.35,0.35], endocrine:[0.70,0.55,0.30], unknown:[0.25,0.25,0.25] };
+for (const c of ['central','sensory','descending','ascending','motor','optic']) { const p=palette[c]; $('legend').insertAdjacentHTML('beforeend', `<div><i style="background:rgb(${p.map(v=>v*255|0)})"></i>${c}</div>`); }
+$('legend').insertAdjacentHTML('beforeend','<div><i style="background:#ffcf4a;box-shadow:0 0 6px #ffcf4a"></i>正在放电</div><div><i style="background:#ff4d4d"></i>被刺激</div><div><i style="background:#6fb3ff"></i>示波器探针</div>');
+
+const canvas = $('c3d');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias:false });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(45, 1, 1, 20000);
+camera.position.set(0, -650, 420); camera.up.set(0,0,-1);
+const controls = new OrbitControls(camera, canvas); controls.enableDamping = true;
+const geo = new THREE.BufferGeometry();
+geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+const base = new Float32Array(N*3);
+function recolor(){
+  for (let i=0;i<N;i++){ const p = palette[M.classes[sc[i]]]; base[i*3]=p[0]; base[i*3+1]=p[1]; base[i*3+2]=p[2]; }
+  for (const i of stimSet){ base[i*3]=1; base[i*3+1]=0.3; base[i*3+2]=0.3; }
+  for (const i of probeIdx){ base[i*3]=0.4; base[i*3+1]=0.7; base[i*3+2]=1; }
+  baseAttr.needsUpdate = true;
+}
+const baseAttr = new THREE.BufferAttribute(base, 3); geo.setAttribute('base', baseAttr);
+const flash = new Float32Array(N); const flashAttr = new THREE.BufferAttribute(flash, 1); flashAttr.setUsage(THREE.DynamicDrawUsage); geo.setAttribute('flash', flashAttr);
+const vis = new Float32Array(N).fill(1); const visAttr = new THREE.BufferAttribute(vis, 1); geo.setAttribute('vis', visAttr);
+const mark = new Float32Array(N); const markAttr = new THREE.BufferAttribute(mark, 1); geo.setAttribute('mark', markAttr);
+const mat = new THREE.ShaderMaterial({ transparent:true, depthWrite:false, blending:THREE.AdditiveBlending, uniforms:{ pr:{value:renderer.getPixelRatio()} },
+  vertexShader:`attribute vec3 base; attribute float flash; attribute float vis; attribute float mark; varying vec3 vc; varying float va; uniform float pr;
+    void main(){ vec4 mv = modelViewMatrix * vec4(position,1.0); float f = flash;
+      vc = mix(base*mix(0.55,1.2,mark), vec3(1.0,0.85,0.35), f); va = vis * mix(mix(0.35,0.9,mark), 1.0, f);
+      float size = mix(mix(1.6,4.0,mark), 9.0, f) * pr * (600.0 / -mv.z); gl_PointSize = clamp(size, vis*1.0, 40.0); gl_Position = projectionMatrix * mv; }`,
+  fragmentShader:`varying vec3 vc; varying float va; void main(){ vec2 d = gl_PointCoord-0.5; float r=dot(d,d); if(r>0.25) discard; gl_FragColor = vec4(vc, va*smoothstep(0.25,0.0,r)); }` });
+scene.add(new THREE.Points(geo, mat));
+function resize(){ const r = $('view').getBoundingClientRect(); renderer.setSize(r.width, r.height, false); camera.aspect = r.width/r.height; camera.updateProjectionMatrix(); }
+addEventListener('resize', resize);
+
+// ---------- state ----------
+let stimSet = new Set(), probeIdx = [], running = true, step = 0, nAct = 0;
+const everFired = new Uint8Array(N);
+const SCOPE_LEN = Math.round(200 / M.dt); // 200 ms of samples, one per time step
+let scopeBuf = [];      // per probe: Float32Array ring
+let scopePtr = 0;
+let spikeWindow = [];   // [wallTime, nSpikes] for spikes/s
+let lastFrameWall = performance.now(), lastFrameStep = 0, ratio = 0;
+
+$('optic').onchange = e => { const opt = M.classes.indexOf('optic'); for (let i=0;i<N;i++) vis[i] = (sc[i]===opt && !e.target.checked) ? 0 : 1; visAttr.needsUpdate = true; };
+
+// ---------- websocket ----------
+let ws; const send = o => ws && ws.readyState===1 && ws.send(JSON.stringify(o));
+function connect(){
+  ws = new WebSocket(`ws://${location.host}/ws`); ws.binaryType = 'arraybuffer';
+  ws.onopen = () => { $('status').textContent = '已连接'; $('status').className=''; log('WebSocket 已连接','c'); };
+  ws.onclose = () => { $('status').textContent = '连接断开，3 秒后重连'; $('status').className='bad'; setTimeout(connect, 3000); };
+  ws.onmessage = ev => {
+    if (typeof ev.data === 'string'){ const m = JSON.parse(ev.data); onJson(m); return; }
+    const buf = ev.data; let off = 0; const dv = new DataView(buf);
+    while (off < buf.byteLength){
+      const st = dv.getUint32(off, true), ns = dv.getUint32(off+4, true), np = dv.getUint32(off+8, true), S = dv.getUint32(off+12, true), us = dv.getFloat32(off+16, true); off += 20;
+      const sp = new Uint32Array(buf.slice(off, off+ns*4)); off += ns*4;
+      const v = new Float32Array(buf.slice(off, off+S*np*4)); off += S*np*4;
+      for (let k=0;k<ns;k++){ const n = sp[k]; flash[n] = 1; if(!everFired[n]){ everFired[n]=1; nAct++; } }
+      if (np === scopeBuf.length && np){ for (let s=0;s<S;s++){ for (let k=0;k<np;k++) scopeBuf[k][scopePtr] = v[s*np+k]; scopePtr = (scopePtr+1) % SCOPE_LEN; } }
+      step = st; $('stepms').textContent = us.toFixed(0)+' µs';
+      spikeWindow.push([performance.now(), ns]);
+    }
+    flashAttr.needsUpdate = true;
+  };
+}
+function onJson(m){
+  if (m.type === 'hello' || m.type === 'state'){
+    stimSet = new Set(m.stim); running = m.running; if (m.probe) setProbeLocal(m.probe); if (m.speed !== undefined) $('speedcap').value = String(m.speed);
+    $('run').textContent = running ? '❚❚ 暂停' : '▶ 继续'; $('run').className = running ? '' : 'on';
+    renderStimList(); recolor();
+  } else if (m.type === 'search'){
+    $('hits').innerHTML = m.hits.map(([t,s,n]) => `<div data-t="${t}" data-s="${s}"><span>${t} <small style="color:var(--dim)">${s}</small></span><span>${n}</span></div>`).join('') || '<small style="color:var(--dim)">无匹配</small>';
+    for (const d of $('hits').children) d.onclick = () => { send({cmd:'stim_type', type:d.dataset.t, side:d.dataset.s, rate:+$('rate').value}); };
+  } else if (m.type === 'top'){
+    setProbe(m.idx);
+  } else if (m.type === 'log'){ log(m.msg); }
+}
+connect();
+
+// ---------- controls ----------
+$('run').onclick = () => send({cmd: running ? 'pause' : 'resume'});
+$('reset').onclick = () => { send({cmd:'reset'}); flash.fill(0); everFired.fill(0); nAct=0; log('状态已重置（膜电位归零，刺激保留）'); };
+$('clear').onclick = () => { send({cmd:'clear'}); log('已清空所有刺激'); };
+for (const [k,p] of Object.entries(M.presets)){ const b=document.createElement('button'); b.textContent=p.name; b.onclick=()=>{ send({cmd:'stim', idx:p.idx, rate:p.rate}); log(`预设 ${p.name}: ${p.idx.length} 个神经元 @ ${p.rate} Hz`,'c'); }; $('presets').appendChild(b); }
+let qt; $('q').oninput = () => { clearTimeout(qt); const q=$('q').value.trim(); if(q.length<2){ $('hits').innerHTML=''; return; } qt=setTimeout(()=>send({cmd:'search', q}), 250); };
+$('autoprobe').onclick = () => send({cmd:'top', k:8});
+function renderStimList(){
+  const groups = {}; for (const i of stimSet){ const k = typeOf(i)+' '+SIDES[scode[i]]; (groups[k] ||= []).push(i); }
+  $('nstim').textContent = stimSet.size ? `${stimSet.size} 个神经元` : '无';
+  $('stimlist').innerHTML = Object.entries(groups).sort((a,b)=>b[1].length-a[1].length).map(([k,arr]) => `<div><span>${k} <small>×${arr.length}</small></span><button data-k="${k}">移除</button></div>`).join('');
+  for (const b of $('stimlist').querySelectorAll('button')) b.onclick = () => send({cmd:'unstim', idx:groups[b.dataset.k]});
+}
+function setProbeLocal(idx){ probeIdx = idx.slice(0,16); scopeBuf = probeIdx.map(()=>new Float32Array(SCOPE_LEN).fill(NaN)); scopePtr = 0; mark.fill(0); for (const i of probeIdx) mark[i]=1; markAttr.needsUpdate=true; recolor(); renderProbeList(); }
+function removeProbe(i){ const next = probeIdx.filter(x=>x!==i); log(`移除探针 ${typeOf(i)}`); setProbe(next); }
+function renderProbeList(){
+  $('nprobe').textContent = probeIdx.length ? `${probeIdx.length}/16` : '无';
+  $('probelist').innerHTML = probeIdx.map(i => `<div><span style="color:${stimSet.has(i)?'var(--red)':'var(--blue)'}">${typeOf(i)} <small style="color:var(--dim)">${SIDES[scode[i]]} · ${M.nts[ntcode[i]].slice(0,4)}</small></span><button data-i="${i}">移除</button></div>`).join('');
+  for (const b of $('probelist').querySelectorAll('button')) b.onclick = () => removeProbe(+b.dataset.i);
+}
+$('clearprobe').onclick = () => { if (probeIdx.length){ log('已清空探针'); setProbe([]); } };
+$('scope').addEventListener('click', e => { if (!probeIdx.length) return; const r = $('scope').getBoundingClientRect(); const x = e.clientX - r.left, y = e.clientY - r.top; if (x > 190) return; const rowH = (r.height-14)/probeIdx.length; const k = Math.floor((y-14)/rowH); if (k>=0 && k<probeIdx.length) removeProbe(probeIdx[k]); });
+$('speedcap').onchange = () => { send({cmd:'speed', value:+$('speedcap').value}); log(`速度上限 → ${$('speedcap').selectedOptions[0].textContent}`); };
+function setProbe(idx){ setProbeLocal(idx); send({cmd:'probe', idx:probeIdx}); log(`示波器: ${probeIdx.map(typeOf).join(', ')}`); }
+
+// ---------- hover / click ----------
+const tip = $('tip'); const ray = new THREE.Raycaster(); ray.params.Points.threshold = 5;
+const hitGeo = new THREE.BufferGeometry(); let hitIdx = [];
+function rebuildHit(){ hitIdx = []; for (let i=0;i<N;i++) if (everFired[i] || stimSet.has(i)) hitIdx.push(i); const a = new Float32Array(hitIdx.length*3); hitIdx.forEach((i,k)=>{ a[k*3]=pos[i*3]; a[k*3+1]=pos[i*3+1]; a[k*3+2]=pos[i*3+2]; }); hitGeo.setAttribute('position', new THREE.BufferAttribute(a,3)); hitGeo.computeBoundingSphere(); }
+const hitPts = new THREE.Points(hitGeo, new THREE.PointsMaterial({size:0.001})); let hover = -1;
+setInterval(rebuildHit, 1000);
+canvas.addEventListener('mousemove', e => {
+  const r = canvas.getBoundingClientRect(); const m = new THREE.Vector2(((e.clientX-r.left)/r.width)*2-1, -((e.clientY-r.top)/r.height)*2+1);
+  ray.setFromCamera(m, camera); const hits = hitIdx.length ? ray.intersectObject(hitPts, false) : [];
+  if (hits.length){ hover = hitIdx[hits[0].index]; tip.style.display='block'; tip.style.left=(e.clientX-r.left+14)+'px'; tip.style.top=(e.clientY-r.top+10)+'px';
+    tip.innerHTML = `<b>${typeOf(hover)}</b> ${stimSet.has(hover)?'<span style="color:var(--red)">刺激中</span>':''}<br>${describe(hover)}<br><span style="color:var(--dim)">id ${ids[hover]} · 点击加入示波器</span>`; }
+  else { hover = -1; tip.style.display='none'; }
+});
+canvas.addEventListener('click', () => { if (hover>=0 && !probeIdx.includes(hover)) setProbe([...probeIdx, hover].slice(-16)); });
+
+// ---------- oscilloscope ----------
+const scope = $('scope'), sctx = scope.getContext('2d');
+function drawScope(){
+  const W = scope.clientWidth, H = scope.clientHeight; if (!W) return;
+  if (scope.width !== W*devicePixelRatio){ scope.width = W*devicePixelRatio; scope.height = H*devicePixelRatio; }
+  sctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0); sctx.clearRect(0,0,W,H);
+  const K = probeIdx.length, left = 190;
+  sctx.fillStyle='#5a6478'; sctx.font='10px system-ui';
+  sctx.fillText(`膜电位，最近 200 ms（${M.v_rest} mV 静息 → ${M.v_th} mV 阈值即放电）· 点击左侧名字移除探针`, left, 10);
+  if (!K){ sctx.fillText('还没有探针：点“示波器→最活跃”，或点击脑里的神经元', left, 30); return; }
+  const rowH = (H-14)/K, vmin = M.v_rest-3, vmax = M.v_th+1;
+  for (let k=0;k<K;k++){
+    const y0 = 14 + k*rowH, i = probeIdx[k];
+    sctx.fillStyle = stimSet.has(i) ? '#ff8a8a' : '#c8cfdb'; sctx.font='11px system-ui'; sctx.fillText(typeOf(i)+'  '+M.nts[ntcode[i]].slice(0,4)+' '+SIDES[scode[i]].slice(0,1), 6, y0+rowH*0.6);
+    sctx.strokeStyle='#1e2532'; sctx.beginPath(); sctx.moveTo(left,y0+rowH); sctx.lineTo(W,y0+rowH); sctx.stroke();
+    sctx.strokeStyle = stimSet.has(i) ? '#ff8a8a' : '#6fb3ff'; sctx.lineWidth=1; sctx.beginPath();
+    for (let s=0;s<SCOPE_LEN;s++){ const v = scopeBuf[k][(scopePtr+s)%SCOPE_LEN]; if (isNaN(v)) continue; const x = left + s/(SCOPE_LEN-1)*(W-left-6); const y = y0+rowH-(v-vmin)/(vmax-vmin)*rowH*0.9-rowH*0.05; s===0||isNaN(scopeBuf[k][(scopePtr+s-1)%SCOPE_LEN]) ? sctx.moveTo(x,y) : sctx.lineTo(x,y); }
+    sctx.stroke();
+  }
+}
+
+// ---------- loop ----------
+let lastWall = performance.now();
+function frame(now){
+  const k = Math.pow(+$('decay').value, (now-lastWall)/16.7); lastWall = now;
+  for (let i=0;i<N;i++) flash[i]*=k; flashAttr.needsUpdate = true;
+  const cutoff = now-1000; while (spikeWindow.length && spikeWindow[0][0] < cutoff) spikeWindow.shift();
+  const sps = spikeWindow.reduce((a,b)=>a+b[1],0);
+  if (now - lastFrameWall > 500){ ratio = (step-lastFrameStep)*DT/ (now-lastFrameWall); lastFrameWall = now; lastFrameStep = step; }
+  $('tms').textContent = (step*DT/1000).toFixed(2)+' s'; $('tms2').textContent = (step*DT).toFixed(1);
+  $('ratio').textContent = ratio ? ratio.toFixed(3)+'× 实时' : '–'; $('nact').textContent = nAct; $('sps').textContent = sps.toLocaleString()+' /s(墙钟)';
+  controls.update(); renderer.render(scene, camera); drawScope(); requestAnimationFrame(frame);
+}
+resize(); recolor(); requestAnimationFrame(frame);
+</script>
+</body>
+</html>
