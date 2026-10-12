@@ -139,3 +139,56 @@ sugar + p9 × 0.5/1.0 s × 5 种子 × dt {0.1, 0.25, 0.5} + sugar 10 s 漂移�
 - p9 的 Jaccard 两边都低是因为活跃神经元仅 ~60 个，采样涨落大——地板本身也只有 0.54。
 - 10 s 漂移：逐秒 rate_corr 0.989–0.996，count_ratio 0.95–1.03，无发散。
 - 结论：FastBrain 引擎通过系统验证，可作为 Phase 1 研究仪器。
+
+## FastBrain 接入基准系统（2026-10-12）
+
+新增第 7 个基准后端：
+- `code/run_fastbrain.py`：基准 runner，接口与 run_pytorch.py / run_brian2_genn.py 一致。
+  n_run 为顺序独立试验（每次新建 FastBrain 实例——CUDA Graph 拥有 RNG 状态，
+  换种子必须重新捕获；与 Brian2GeNN 的逐 trial 重建惯例相同），种子 = 1 + trial
+  (+ round×100000)。计时分离：setup = 权重/突触块构建，build = CUDA Graph 捕获，
+  sim = 纯 graph 回放（脉冲的 act_buf 在 GPU 上 clone，主机侧映射/parquet 导出在
+  计时区之外）。dt 默认 0.25 ms（实时档），可选 0.1。
+- `code/benchmark.py`：BACKEND_NAMES 加 `fastbrain`；run_benchmarks 加
+  `fastbrain_dts` 参数；T_RUN_VALUES_SEC 加 0.5。
+- `main.py`：`--fastbrain`（可与其他后端组合）+ `--fastbrain-dt 0.25 0.1`。
+- `code/compare_spike_outputs.py` / `code/compare_ground_truth.py`：
+  FRAMEWORKS/BACKENDS 加 `fastbrain_dt0.25` / `fastbrain_dt0.1`（backend_key 含 dt，
+  parquet 名如 `fastbrain_dt0.25_t0.5s_n1.parquet`，CSV framework 名含 dt，避免行冲突）。
+
+运行：`python main.py --pytorch --fastbrain --fastbrain-dt 0.25 0.1 --t_run 0.5 --n_run 1 4 --run-label local_fastbrain`
+（sugar GRN 200 Hz，t_run 0.5 s，round 1。Brian2-CPU 跳过：本机 VS 2022 Community
+未装 C++ 工作负载，无 cl.exe/vcvarsall.bat，cpp_standalone 最小 2 神经元构建直接
+OSError: Cannot find Microsoft Visual Studio；MinGW 不被 Brian2 Windows 支持。）
+
+计时（秒，setup/build/sim 为全部 trial 合计；sim 不含脉冲导出）：
+
+| 后端 | n_run | setup | build | sim | total | 实时比(sim) | 脉冲数 |
+|---|---|---|---|---|---|---|---|
+| PyTorch (CUDA) | 1 | 1.28 | 0 | 26.30 | 27.80 | 0.019× | 8561 |
+| PyTorch (CUDA) | 4 | 0.98 | 0 | 118.69 | 120.26 | 0.017× | 34527 |
+| FastBrain dt0.25 | 1 | 5.66 | 0.30 | 0.98 | 7.10 | 0.51× | 8312 |
+| FastBrain dt0.25 | 4 | 23.02 | 0.62 | 3.98 | 27.91 | 0.50× | 33459 |
+| FastBrain dt0.1 | 1 | 5.16 | 0.32 | 2.43 | 8.07 | 0.21× | 8646 |
+| FastBrain dt0.1 | 4 | 21.85 | 1.24 | 9.78 | 33.20 | 0.20× | 33679 |
+
+- FastBrain 纯仿真比 PyTorch 快约 27×（n=1）/ 30×（n=4）；dt0.25 含建图总耗时
+  n=1 时也已快于 PyTorch（7.1 s vs 27.8 s），n=4 时 27.9 s vs 120.3 s。
+- 注意：当前引擎实测 ~500–545 µs/步（dt0.25），高于 9 月记录的 175–252 µs/步
+  （live_server 已确认未运行；疑似驱动/频率状态变化，未深究）。PyTorch 同步也比
+  9 月慢（26.3 s/0.5 s vs 9.4 s/1 s），同为会话内一致条件，相对比较有效。
+
+精度（compare_spike_outputs.py，±1 ms 贪婪一一匹配；Brian2 缺席故以 PyTorch 为参照）：
+
+| 对比 | n_run | Jaccard | rate_corr | 脉冲数比 | timing F1 |
+|---|---|---|---|---|---|
+| pytorch vs fb dt0.25 | 1 | 0.896 | 0.982 | 0.971 | 0.160 |
+| pytorch vs fb dt0.1 | 1 | 0.929 | 0.988 | 1.010 | 0.168 |
+| pytorch vs fb dt0.25 | 4 | 0.935 | 0.997 | 0.969 | 0.172 |
+| pytorch vs fb dt0.1 | 4 | 0.933 | 0.997 | 0.975 | 0.169 |
+| fb dt0.25 vs dt0.1 | 4 | 0.914 | 0.998 | 1.007 | 0.168 |
+
+与验证矩阵的种子噪声地板（sugar：Jaccard 0.928、rate_corr 0.991）一致——
+FastBrain 与参考的差异 ≈ 随机涨落。结果：
+`data/results/local_fastbrain/round_01/*.parquet` +
+`comparisons/pairwise_summary.{csv,json}`，CSV 行带 run_label `local_fastbrain`。

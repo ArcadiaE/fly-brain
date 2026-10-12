@@ -33,6 +33,8 @@ FRAMEWORKS = {
     'nestgpu': 'NEST GPU',
     'genn': 'GeNN (GPU)',
     'brian2genn': 'Brian2GeNN (GPU)',
+    'fastbrain_dt0.25': 'FastBrain dt=0.25ms (CUDA Graph)',
+    'fastbrain_dt0.1': 'FastBrain dt=0.1ms (CUDA Graph)',
 }
 
 DEFAULT_T_RUN = [0.1, 1.0, 10.0, 100.0]

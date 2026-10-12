@@ -18,6 +18,8 @@ Usage:
     python main.py --nestgpu                             # NEST GPU only
     python main.py --genn                                # GeNN only
     python main.py --brian2genn                          # Brian2GeNN GPU only
+    python main.py --fastbrain                           # FastBrain CUDA-Graph only
+    python main.py --fastbrain --fastbrain-dt 0.25 0.1   # FastBrain at two timesteps
     python main.py --brian2-cpu --pytorch --nestgpu      # Brian2 CPU + PyTorch + NEST GPU
 
     # Brian2GeNN uses a separate environment because it pins Brian2<2.6
@@ -98,6 +100,11 @@ def main():
                         help='Run GeNN benchmark')
     parser.add_argument('--brian2genn', action='store_true',
                         help='Run Brian2GeNN benchmark')
+    parser.add_argument('--fastbrain', action='store_true',
+                        help='Run FastBrain (event-driven CUDA-Graph) benchmark')
+    parser.add_argument('--fastbrain-dt', '--fastbrain_dt', dest='fastbrain_dt',
+                        type=float, nargs='+', default=None,
+                        help='FastBrain timestep(s) in ms. Default: 0.25')
 
     args = parser.parse_args()
 
@@ -110,6 +117,7 @@ def main():
     if not (
         args.brian2_cpu or args.brian2cuda_gpu
         or args.pytorch or args.nestgpu or args.genn or args.brian2genn
+        or args.fastbrain
     ):
         backends = ['cpu', 'gpu', 'pytorch', 'nestgpu', 'genn']
     else:
@@ -126,6 +134,8 @@ def main():
             backends.append('genn')
         if args.brian2genn:
             backends.append('brian2genn')
+        if args.fastbrain:
+            backends.append('fastbrain')
 
     # Import brian2cuda once to register the cuda_standalone device
     if 'gpu' in backends:
@@ -192,6 +202,7 @@ def main():
             rounds=rounds,
             run_label=args.run_label,
             round_start=args.round_start,
+            fastbrain_dts=args.fastbrain_dt,
         )
 
     finally:

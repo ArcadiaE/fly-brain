@@ -719,3 +719,9 @@ Brian2GeNN (GPU),32,0.1,33.013,1344.277,2.624,1381.394,1.2195,0,0,success,2026-0
 Brian2GeNN (GPU),32,1.0,29.349,1178.222,38.381,1247.261,0.8337,0,0,success,2026-06-24 15:24:09,brian2genn,Sugar GRNs (200 Hz),sugar,nature_2026_07_noio,1,
 Brian2GeNN (GPU),32,10.0,25.161,1175.963,395.892,1598.205,0.8083,0,0,success,2026-06-24 15:49:41,brian2genn,Sugar GRNs (200 Hz),sugar,nature_2026_07_noio,1,
 Brian2GeNN (GPU),32,100.0,23.439,1202.821,3908.939,5136.329,0.8186,0,0,success,2026-06-24 17:10:59,brian2genn,Sugar GRNs (200 Hz),sugar,nature_2026_07_noio,1,
+FastBrain dt=0.25ms (CUDA Graph),1,0.5,5.663,0.3,0.983,7.099,0.5088,8312,387,success,2026-10-12 14:26:15,fastbrain_dt0.25,Sugar GRNs (200 Hz),sugar,local_fastbrain,1,data/results/local_fastbrain/round_01/fastbrain_dt0.25_t0.5s_n1.parquet
+PyTorch (CUDA),1,0.5,1.282,0.0,26.301,27.801,0.019,8561,377,success,2026-10-12 14:24:07,pytorch,Sugar GRNs (200 Hz),sugar,local_fastbrain,1,data/results/local_fastbrain/round_01/pytorch_t0.5s_n1.parquet
+PyTorch (CUDA),4,0.5,0.977,0.0,118.69,120.262,0.0169,34527,428,success,2026-10-12 14:26:08,pytorch,Sugar GRNs (200 Hz),sugar,local_fastbrain,1,data/results/local_fastbrain/round_01/pytorch_t0.5s_n4.parquet
+FastBrain dt=0.25ms (CUDA Graph),4,0.5,23.016,0.622,3.983,27.911,0.5021,33459,410,success,2026-10-12 14:26:43,fastbrain_dt0.25,Sugar GRNs (200 Hz),sugar,local_fastbrain,1,data/results/local_fastbrain/round_01/fastbrain_dt0.25_t0.5s_n4.parquet
+FastBrain dt=0.1ms (CUDA Graph),1,0.5,5.16,0.319,2.43,8.068,0.2058,8646,379,success,2026-10-12 14:26:52,fastbrain_dt0.1,Sugar GRNs (200 Hz),sugar,local_fastbrain,1,data/results/local_fastbrain/round_01/fastbrain_dt0.1_t0.5s_n1.parquet
+FastBrain dt=0.1ms (CUDA Graph),4,0.5,21.848,1.239,9.778,33.2,0.2045,33679,411,success,2026-10-12 14:27:25,fastbrain_dt0.1,Sugar GRNs (200 Hz),sugar,local_fastbrain,1,data/results/local_fastbrain/round_01/fastbrain_dt0.1_t0.5s_n4.parquet

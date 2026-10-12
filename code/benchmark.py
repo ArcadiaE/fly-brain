@@ -8,6 +8,7 @@ to framework-specific runners:
   - run_nestgpu.py      (NEST GPU)
   - run_genn.py         (GeNN)
   - run_brian2_genn.py  (Brian2GeNN)
+  - run_fastbrain.py    (FastBrain, event-driven CUDA-Graph engine)
 
 Entrypoint is in main.py at the project root.
 """
@@ -26,7 +27,7 @@ from datetime import datetime
 # Benchmark Configuration
 # ============================================================================
 
-T_RUN_VALUES_SEC = [0.1, 1, 10, 100, 1000]
+T_RUN_VALUES_SEC = [0.1, 0.5, 1, 10, 100, 1000]
 PAPER_T_RUN_VALUES_SEC = [0.1, 1.0, 10.0, 100.0]
 N_RUN_VALUES = [1, 4, 8, 16, 32]
 PAPER_ROUNDS = 5
@@ -408,18 +409,20 @@ BACKEND_NAMES = {
     'nestgpu': 'NEST GPU',
     'genn': 'GeNN (GPU)',
     'brian2genn': 'Brian2GeNN (GPU)',
+    'fastbrain': 'FastBrain (CUDA Graph)',
 }
 
 
 def run_benchmarks(backends, t_run_values=None, n_run_values=None,
                    experiment=None, logger=None, rounds=1, run_label=None,
-                   round_start=1):
+                   round_start=1, fastbrain_dts=None):
     """
     Run benchmarks for the specified backends.
 
     Args:
         backends: list of backend keys
-            ('cpu', 'gpu', 'pytorch', 'nestgpu', 'genn', 'brian2genn')
+            ('cpu', 'gpu', 'pytorch', 'nestgpu', 'genn', 'brian2genn',
+            'fastbrain')
         t_run_values: list of t_run durations in seconds, or None for all
         n_run_values: list of n_run values, or None for N_RUN_VALUES
         experiment: experiment config dict from get_experiment()
@@ -427,6 +430,8 @@ def run_benchmarks(backends, t_run_values=None, n_run_values=None,
         rounds: number of repeated benchmark rounds to run
         run_label: optional label used to group round-specific spike outputs
         round_start: first round number to write, for resuming interrupted runs
+        fastbrain_dts: list of dt values (ms) for the FastBrain backend,
+            or None for its default ([0.25])
 
     Returns:
         dict mapping backend key to list of result dicts
@@ -527,6 +532,19 @@ def run_benchmarks(backends, t_run_values=None, n_run_values=None,
                     logger=logger,
                     run_label=run_label,
                     round_idx=round_label,
+                )
+                all_results.setdefault(backend, []).extend(results)
+
+            elif backend == 'fastbrain':
+                from run_fastbrain import run_all_benchmarks as run_fastbrain
+                results = run_fastbrain(
+                    t_run_values=t_run_values,
+                    n_run_values=n_run_values,
+                    experiment=experiment,
+                    logger=logger,
+                    run_label=run_label,
+                    round_idx=round_label,
+                    dt_values=fastbrain_dts,
                 )
                 all_results.setdefault(backend, []).extend(results)
 
