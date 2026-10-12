@@ -72,6 +72,8 @@ code{background:#1a2238;padding:1px 6px;border-radius:4px;font-size:13px}
 
 <section id="model">
 <h2>模型与数据<span class="en">Model &amp; Data</span></h2>
+<img class="hero" src="assets/ai_mushroom_body.png" alt="AI-generated mushroom body illustration">
+<div class="cap">AI 生成示意图：果蝇蘑菇体（学习与记忆中枢）· AI-generated illustration: the mushroom body, not data</div>
 <p><b>模型。</b>渗漏积分发放（LIF）点神经元 + alpha 突触，dt = 0.1 ms（实时模式 dt = 0.25 ms），权重由 FlyWire v783 连接组突触数导出，递质符号来自递质预测。支持任意神经元集合的泊松激活（光遗传式）与沉默。蘑菇体学习相关细胞已在注释中核实：5,177 个 Kenyon 细胞（11 类）、96 个 MBON（35 型）、331 个多巴胺能神经元（PAM/PPL 27 型）。</p>
 <div class="en-block"><b>Model.</b> Leaky integrate-and-fire point neurons with alpha synapses at dt = 0.1 ms (0.25 ms in real-time mode); weights derived from FlyWire v783 synapse counts, signs from predicted neurotransmitters. Arbitrary neuron sets can be Poisson-activated (optogenetic-style) or silenced. Mushroom-body learning circuitry verified in annotations: 5,177 Kenyon cells (11 types), 96 MBONs (35 types), 331 dopaminergic neurons (27 PAM/PPL types).</div>
 <img class="chart" src="assets/connectome_web.png" alt="Connectome wiring art (sampled synapses)">
@@ -80,6 +82,8 @@ code{background:#1a2238;padding:1px 6px;border-radius:4px;font-size:13px}
 
 <section id="engine">
 <h2>FastBrain 引擎<span class="en">The FastBrain Engine</span></h2>
+<img class="hero" src="assets/ai_gpu_snn.png" alt="AI-generated GPU with spiking signals illustration">
+<div class="cap">AI 生成示意图：脉冲信号在 GPU 上传播 · AI-generated illustration: spikes on a GPU, not data</div>
 <p><b>设计。</b>原版 PyTorch 后端每步做一次稠密 SpMV，仅 0.1 倍实时；诊断表明瓶颈是每步约 75 个 CUDA kernel 的启动开销。FastBrain 的方案：① 事件驱动——W<sup>T</sup> 切成 256 宽定长突触块（15.1 万块），每步用 cumsum 压缩把放电神经元的块装入固定槽位，gather + index_add 替代全图乘法；② 全张量定形，整块 S 步录成一张 CUDA Graph 一次启动，每步内核数从 ~75 降到 ~33；③ 延迟环取延迟步数整数倍，环槽位成为编译期常量；④ 脉冲导出复用压缩后的活动块列表。显存占用约 0.45 GB。</p>
 <div class="en-block"><b>Design.</b> The stock PyTorch backend runs one dense SpMV per step at ~0.1&times; real-time; profiling showed the bottleneck is kernel-launch overhead (~75 kernels/step). FastBrain instead: (1) event-driven propagation — W<sup>T</sup> is cut into 256-wide fixed-size synapse blocks (151k blocks); each step a cumsum compaction packs the blocks of spiking neurons into fixed slots, then gather + index_add replaces full-graph multiplication; (2) all tensors are shape-pinned so S whole steps are captured into one CUDA Graph launched once, cutting kernels from ~75 to ~33 per step; (3) the delay ring length is a multiple of the delay in steps, making ring slots compile-time constants; (4) spike export reuses the compacted active-block list. Memory: ~0.45 GB.</div>
 </section>
@@ -120,6 +124,8 @@ code{background:#1a2238;padding:1px 6px;border-radius:4px;font-size:13px}
 
 <section id="viz">
 <h2>可视化<span class="en">Visualization</span></h2>
+<img class="hero" src="assets/ai_hologram_brain.png" alt="AI-generated holographic fly brain illustration">
+<div class="cap">AI 生成示意图：全脑全息投影 · AI-generated illustration: holographic whole brain, not data</div>
 <p><b>实时控制台与 3D 回放。</b>WebSocket 实时控制台支持点击任意细胞类型刺激、示波器探针、暂停/重置；离线 3D 回放把 13.8 万神经元坐标、脉冲序列与膜电位波形打包成单文件 HTML。下图为回放页面真实截图（糖味觉刺激后 349.9 ms，380 个神经元已放电，5,828 次脉冲）。</p>
 <div class="en-block"><b>Live console &amp; 3D replay.</b> A WebSocket live console supports click-to-stimulate by cell type, oscilloscope probes, pause/reset; the offline 3D replay packs 138k neuron coordinates, spike trains and voltage traces into a single-file HTML. Below: a real screenshot of the replay (349.9 ms after sugar stimulation; 380 neurons fired, 5,828 spikes).</div>
 <img class="chart" src="assets/screenshot_brain3d.png" alt="3D brain replay screenshot">
@@ -136,6 +142,8 @@ code{background:#1a2238;padding:1px 6px;border-radius:4px;font-size:13px}
 <tr><td>2（二选一）</td><td>A. 贝叶斯优化刺激逆向设计（交付 split-GAL4 驱动线方案）；B. 蘑菇体三因子学习嵌入全脑（先孤立复现条件反射，再全脑背景消融）</td><td>A. BO-based inverse stimulus design (deliverable: driver-line choice); B. mushroom-body plasticity in situ (isolated-MB reproduction first, then whole-brain background ablation)</td></tr>
 </table>
 <div class="warn">方法论红线：一切结论内置 degree-matched 重连 null 对照；不沿用未溯源的准确率数字；不用 "upload/emulation" 措辞。/ Standing rules: degree-matched rewired nulls for every claim; no recycled accuracy numbers; no "upload/emulation" framing.</div>
+<img class="hero" src="assets/ai_robot_embodied.png" alt="AI-generated concept: fly-brain-driven robot">
+<div class="cap">AI 生成概念图：全脑模型驱动具身智能体（远期愿景）· AI-generated concept art: brain-driven embodied agent, not data</div>
 </section>
 
 <section id="refs">

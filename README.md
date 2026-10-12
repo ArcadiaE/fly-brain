@@ -119,6 +119,12 @@ fly-brain/
 
 方法论红线：一切结论内置 degree-matched 重连 null 对照。详细情报见 [`experiments/RESEARCH.md`](experiments/RESEARCH.md)。
 
+<div align="center">
+<img src="docs/assets/ai_robot_embodied.png" alt="AI-generated concept: fly-brain-driven robot" width="70%">
+
+*概念图：全脑模型驱动具身智能体（AI 生成，非实验数据）*
+</div>
+
 [返回目录](#zh)
 
 <a id="zh-license"></a>
@@ -239,6 +245,12 @@ The model uses the FlyWire connectome v783 (public release). Benchmark outputs (
 - **Phase 2 (TBD)** Bayesian-optimization inverse stimulus design, or mushroom-body learning embedded in the whole brain
 
 Standing rule: every claim ships with degree-matched rewired null controls. Full recon in [`experiments/RESEARCH.md`](experiments/RESEARCH.md).
+
+<div align="center">
+<img src="docs/assets/ai_hologram_brain.png" alt="AI-generated holographic fly brain" width="70%">
+
+*Concept art: holographic whole-brain projection (AI-generated, not experimental data)*
+</div>
 
 [Back to contents](#en)
 
