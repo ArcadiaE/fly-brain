@@ -1,3 +1,20 @@
+# FastBrain fork — real-time whole-brain simulation
+
+> **This fork** (by [@ArcadiaE](https://github.com/ArcadiaE)) adds **FastBrain**, an event-driven CUDA-Graph engine that runs the whole-brain model at **~1× real-time on a consumer laptop GPU** (RTX 3060, 6 GB) — ~27–30× faster simulation than the PyTorch backend — plus an interactive live console, offline 3D replay, a systematic validation harness (`experiments/validate_matrix.py`), and a 7th benchmark backend (`code/run_fastbrain.py`, `main.py --fastbrain`).
+>
+> **本分支**新增 FastBrain 事件驱动引擎（消费级笔记本 GPU 实时运行全脑模型，仿真速度约为 PyTorch 后端的 27–30 倍）、实时交互控制台、离线 3D 回放、系统验证脚本，并将 FastBrain 接入基准体系成为第 7 个后端。
+>
+> **Full bilingual report / 完整双语报告**: [`docs/index.html`](docs/index.html)（含基准数据、验证矩阵、可视化截图与研究路线图）
+>
+> | Engine | Sim speed (sugar, t=0.5 s) | Accuracy vs reference |
+> |---|---|---|
+> | PyTorch (CUDA) | 26.3 s (0.019× RT) | — (reference) |
+> | **FastBrain dt 0.25** | **0.98 s (0.51× RT)** | within seed-noise floor (rate corr 0.990 vs floor 0.991) |
+>
+> Upstream: [eonsystemspbc/fly-brain](https://github.com/eonsystemspbc/fly-brain) (Eon Systems PBC).
+
+----
+
 # Emulation of the *Drosophila Fly* Brain
 
 Whole-brain leaky integrate-and-fire model of the adult fruit fly, built from the
