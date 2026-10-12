@@ -7,9 +7,9 @@
 
 [中文](#zh) · [English](#en) · [完整双语报告 Full report](docs/index.html) · [在线报告 Live report](https://arcadiae.github.io/fly-brain/)
 
-<img src="docs/assets/ai_banner_brain.png" alt="AI-generated artistic rendering of the fly brain connectome" width="100%">
+<img src="docs/assets/ai_banner_anime.png" alt="AI-generated anime-style banner: researcher with fly brain hologram" width="100%">
 
-*AI 生成示意图（Kimi 图像生成），非实验数据 · AI-generated artistic illustration, not experimental data*
+*AI 生成示意图（Kimi 图像生成，日漫风），非实验数据 · AI-generated anime-style illustration, not experimental data*
 
 <img src="docs/assets/hero_brain.png" alt="Whole fly brain with firing neurons highlighted" width="100%">
 
