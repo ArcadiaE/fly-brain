@@ -7,6 +7,10 @@
 
 [中文](#zh) · [English](#en) · [完整双语报告 Full report](docs/index.html) · [在线报告 Live report](https://arcadiae.github.io/fly-brain/)
 
+<img src="docs/assets/ai_banner_brain.png" alt="AI-generated artistic rendering of the fly brain connectome" width="100%">
+
+*AI 生成示意图（Kimi 图像生成），非实验数据 · AI-generated artistic illustration, not experimental data*
+
 <img src="docs/assets/hero_brain.png" alt="Whole fly brain with firing neurons highlighted" width="100%">
 
 *13.8 万神经元全脑仿真，亮点为糖味觉刺激下游的放电神经元 · 138,639-neuron whole-brain simulation; bright dots are neurons firing downstream of sugar taste stimulation*
@@ -126,6 +130,16 @@ GPL-2.0-or-later（见 [LICENSE](LICENSE)）。上游 © Eon Systems PBC；Shiu 
 
 ---
 
+<div align="center">
+
+<img src="docs/assets/ai_fly_cyber.png" alt="AI-generated cyber-style Drosophila illustration" width="80%">
+
+*AI 生成装饰图（Kimi 图像生成），非实验数据 · AI-generated decorative illustration, not experimental data*
+
+</div>
+
+---
+
 <a id="en"></a>
 # English Version
 
@@ -234,3 +248,11 @@ Standing rule: every claim ships with degree-matched rewired null controls. Full
 GPL-2.0-or-later (see [LICENSE](LICENSE)). Upstream © Eon Systems PBC; original Shiu et al. code (`code/paper-phil-drosophila/`) is MIT. Full installation details (NEST GPU source build, separate Brian2GeNN env, etc.) in [README_UPSTREAM.md](README_UPSTREAM.md).
 
 [Back to contents](#en)
+
+<div align="center">
+
+<img src="docs/assets/ai_texture_network.png" alt="AI-generated neural network texture" width="100%">
+
+*装饰横幅：AI 生成示意图（Kimi 图像生成）· Decorative banner: AI-generated illustration (Kimi)*
+
+</div>
