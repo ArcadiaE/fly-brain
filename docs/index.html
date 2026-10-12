@@ -61,15 +61,11 @@ code{background:#1a2238;padding:1px 6px;border-radius:4px;font-size:13px}
 <div>
 <span class="tag">138,639 neurons</span><span class="tag">15M synapses</span><span class="tag">FlyWire v783</span><span class="tag">CUDA Graph</span><span class="tag">event-driven</span><span class="tag">1× real-time @ RTX 3060 Laptop</span>
 </div>
-<img class="hero" src="assets/ai_banner_anime.png" alt="AI-generated anime-style banner: researcher with fly brain hologram">
-<div class="cap">AI 生成示意图（Kimi 图像生成，日漫风）· AI-generated anime-style illustration, not data</div>
 <img class="hero" src="assets/hero_brain.png" alt="Whole fly brain, firing neurons highlighted">
 <p><b>概述。</b>本项目在消费级 GPU 上实时运行果蝇全脑 LIF 模型（Shiu et al. 2024，Nature），核心是自研的 FastBrain 事件驱动引擎：突触块压缩 + CUDA Graph 整段回放，在 RTX 3060 Laptop（6 GB 显存）上达到 1 倍实时，精度与参考实现的差异等于随机种子噪声。仓库为 <a href="https://github.com/eonsystemspbc/fly-brain">eonsystemspbc/fly-brain</a> 的研究分支，新增 FastBrain 引擎、实时交互控制台、3D 回放与系统验证体系，并把 FastBrain 接入官方基准成为第 7 个后端。</p>
 <div class="en-block"><b>Overview.</b> This project runs the whole-brain Drosophila LIF model (Shiu et al. 2024) in real time on consumer GPUs. Its core is FastBrain, an event-driven engine (synapse-block compression + whole-graph CUDA Graph replay) reaching 1&times; real-time on an RTX 3060 Laptop (6 GB), with accuracy indistinguishable from reference seed noise. This repo is a research fork of <a href="https://github.com/eonsystemspbc/fly-brain">eonsystemspbc/fly-brain</a>, adding the engine, an interactive live console, offline 3D replay, a systematic validation harness, and a 7th benchmark backend.</div>
 <img class="chart" src="assets/pipeline_zh.png" alt="流程示意（中文）">
 <img class="chart" src="assets/pipeline_en.png" alt="Pipeline schematic (English)">
-<img class="hero" src="assets/ai_scientist_girl.png" alt="AI-generated anime-style scientist with fly brain hologram">
-<div class="cap">AI 生成示意图（Kimi 图像生成，日漫风）· AI-generated anime-style illustration, not data</div>
 </section>
 
 <section id="model">

@@ -27,6 +27,12 @@
 <a id="zh-intro"></a>
 ## 项目简介
 
+<div align="center">
+<img src="docs/assets/ai_scientist_girl.png" alt="AI-generated anime-style scientist with fly brain hologram" width="60%">
+
+*AI 生成示意图（日漫风），非实验数据*
+</div>
+
 本仓库是 [eonsystemspbc/fly-brain](https://github.com/eonsystemspbc/fly-brain)（Eon Systems PBC）的研究分支。上游项目实现了 Shiu et al. 2024（[Nature](https://www.nature.com/articles/s41586-024-07763-9)）的果蝇全脑渗漏积分发放（LIF）模型——基于 [FlyWire](https://flywire.ai/) v783 连接组（138,639 个神经元、约 1500 万个突触），可对任意神经元集合做光遗传式激活/沉默并观察脉冲在全脑的传播，并提供 Brian2 / Brian2CUDA / PyTorch / NEST GPU / GeNN / Brian2GeNN 六个后端的统一基准。
 
 [返回目录](#zh)
