@@ -143,7 +143,7 @@ GPL-2.0-or-later（见 [LICENSE](LICENSE)）。上游 © Eon Systems PBC；Shiu 
 <div align="center">
 <img src="docs/assets/ai_viola_ignition.png" alt="Viola's ignition declaration" width="70%">
 
-*提问！火种燃尽之后会怎么样呢？三、二、一——周围会燃烧起来！*
+*提问！给 13.8 万个神经元点火之后会怎么样呢？三、二、一——自己跑 `run_live.bat` 看！*
 </div>
 
 ---
@@ -282,5 +282,5 @@ GPL-2.0-or-later (see [LICENSE](LICENSE)). Upstream © Eon Systems PBC; original
 <div align="center">
 <img src="docs/assets/ai_viola_ignition.png" alt="Viola's ignition declaration" width="70%">
 
-*Pop quiz! What happens when the kindling burns out? Three, two, one — everything around you catches fire!*
+*Pop quiz! What happens when you ignite 138,639 neurons? Three, two, one — run `run_live.bat` and watch it burn!*
 </div>
