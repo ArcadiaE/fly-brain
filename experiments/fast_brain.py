@@ -198,8 +198,9 @@ class FastBrain:
         torch.where(spk, self.zero_t, g_new, out=self.g)
         self.refrac.copy_(refrac)
         self.spk.copy_(spk)
-        if self.n_probe:
-            self.probe_v[s].copy_(v_new[self.probe_idx])
+        # always record: with CUDA graphs this line must be captured even when
+        # no probe is set yet, otherwise later set_probe() has no effect
+        self.probe_v[s].copy_(v_new[self.probe_idx])
 
     def _block(self):
         for s in range(self.S):

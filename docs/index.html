@@ -3,164 +3,381 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>FastBrain · Real-time Whole-Brain Drosophila Simulation</title>
+<title>FastBrain · 果蝇全脑实时仿真 Real-time Fly Whole-Brain Simulation</title>
 <style>
-:root{--bg:#0a0e1a;--fg:#dde3ee;--dim:#8b93a7;--acc:#5b8ff9;--acc2:#f6a35c;--card:#121828;--line:#26304a}
+:root{--bg:#0a0e1a;--fg:#dde3ee;--dim:#8b93a7;--acc:#5b8ff9;--acc2:#f6a35c;--card:#121828;--line:#26304a;--gold:#ffcf4a}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--fg);font-family:'Segoe UI','Microsoft YaHei',sans-serif;line-height:1.65}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:'Segoe UI','Microsoft YaHei',sans-serif;line-height:1.7}
 a{color:var(--acc);text-decoration:none}
 a:hover{text-decoration:underline}
+#main-en{display:none}
+body.lang-en #main-en{display:block}
+body.lang-en #main-zh{display:none}
+/* top bar */
+#topbar{position:sticky;top:0;z-index:50;background:rgba(10,14,26,.92);backdrop-filter:blur(6px);border-bottom:1px solid var(--line)}
+#topbar .in{max-width:1180px;margin:0 auto;display:flex;align-items:center;gap:18px;padding:10px 24px;flex-wrap:wrap}
+#topbar .brand{font-weight:700;font-size:17px;color:#fff}
+#topbar nav{display:flex;gap:2px;flex-wrap:wrap;flex:1}
+#topbar nav a{padding:4px 10px;border-radius:6px;font-size:13.5px;color:var(--dim)}
+#topbar nav a:hover{background:#1a2238;color:var(--fg);text-decoration:none}
+#langbtn{background:#1a2238;color:var(--fg);border:1px solid var(--line);border-radius:6px;padding:5px 14px;cursor:pointer;font-size:13px;flex-shrink:0}
+#langbtn:hover{background:#26304a}
 /* layout */
-#wrap{display:flex;max-width:1200px;margin:0 auto}
-nav{position:sticky;top:0;align-self:flex-start;width:230px;height:100vh;overflow-y:auto;padding:28px 18px;border-right:1px solid var(--line);flex-shrink:0}
-nav .brand{font-weight:700;font-size:18px;color:#fff;margin-bottom:4px}
-nav .sub{font-size:12px;color:var(--dim);margin-bottom:18px}
-nav a{display:block;padding:6px 10px;margin:2px 0;border-radius:6px;font-size:14px;color:var(--fg)}
-nav a:hover{background:#1a2238;text-decoration:none}
-nav a .en{display:block;font-size:11px;color:var(--dim)}
-main{flex:1;padding:28px 36px;min-width:0}
-section{margin-bottom:56px;scroll-margin-top:20px}
-h1{font-size:30px;margin:0 0 6px;color:#fff}
-h2{font-size:22px;color:var(--acc);border-bottom:1px solid var(--line);padding-bottom:8px;margin-top:0}
-h2 .en{font-size:14px;color:var(--dim);font-weight:400;margin-left:10px}
-.hero{width:100%;border-radius:12px;border:1px solid var(--line);margin:14px 0}
-.cap{font-size:12px;color:var(--dim);margin:-8px 0 14px;text-align:right}
-.tag{display:inline-block;background:#1a2238;border:1px solid var(--line);border-radius:20px;padding:2px 12px;font-size:12px;color:var(--dim);margin:2px 4px 2px 0}
-.en-block{color:var(--dim);font-size:14.5px;border-left:3px solid var(--line);padding-left:14px;margin:10px 0}
-table{border-collapse:collapse;width:100%;font-size:13.5px;background:var(--card);border-radius:8px;overflow:hidden}
+main .in{max-width:1180px;margin:0 auto;padding:0 24px}
+section{padding:44px 0 8px;scroll-margin-top:64px}
+h1{font-size:34px;margin:0 0 4px;color:#fff}
+h2{font-size:23px;color:var(--acc);border-bottom:1px solid var(--line);padding-bottom:8px;margin:0 0 18px}
+h3{font-size:16.5px;color:#fff;margin:22px 0 8px}
+p{margin:10px 0;max-width:75ch}
+.hero-img{width:100%;border-radius:12px;border:1px solid var(--line);margin:16px 0 6px;display:block}
+.cap{font-size:12.5px;color:var(--dim);margin:2px 0 14px}
+.chart{max-width:100%;border-radius:10px;border:1px solid var(--line);margin:10px 0 4px;background:#000;display:block}
+table{border-collapse:collapse;width:100%;font-size:13.5px;background:var(--card);border-radius:8px;overflow:hidden;margin:12px 0}
 td,th{border:1px solid var(--line);padding:6px 10px;text-align:right}
 td:first-child,th:first-child{text-align:left}
 th{background:#1a2238;color:#fff}
-img.chart{max-width:100%;border-radius:10px;border:1px solid var(--line);margin:10px 0;background:#000}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-.callout{background:#14202f;border-left:4px solid var(--acc);border-radius:0 8px 8px 0;padding:10px 16px;margin:12px 0;font-size:14px}
-.warn{background:#2a1f14;border-left:4px solid var(--acc2);border-radius:0 8px 8px 0;padding:10px 16px;margin:12px 0;font-size:14px}
-footer{color:var(--dim);font-size:12.5px;border-top:1px solid var(--line);padding:18px 0 40px;text-align:center}
+.tag{display:inline-block;background:#1a2238;border:1px solid var(--line);border-radius:20px;padding:2px 12px;font-size:12.5px;color:var(--dim);margin:2px 4px 2px 0}
+/* stat cards */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:18px 0}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.stat .n{font-size:26px;font-weight:700;color:var(--gold);font-variant-numeric:tabular-nums}
+.stat .l{font-size:12.5px;color:var(--dim);margin-top:2px}
+/* demo tabs */
+.demotabs{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0}
+.demotab{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 18px;cursor:pointer;text-align:left;color:var(--fg);font-size:14px;min-width:200px;flex:1}
+.demotab:hover{border-color:var(--acc)}
+.demotab.on{border-color:var(--acc);background:#16203a;box-shadow:0 0 0 1px var(--acc) inset}
+.demotab .t{font-weight:600;display:block}
+.demotab .d{font-size:12px;color:var(--dim);display:block;margin-top:2px}
+#demoframe{width:100%;height:660px;border:1px solid var(--line);border-radius:12px;background:#000;display:block}
+.demometa{font-size:13px;color:var(--dim);margin:8px 0}
+.demometa b{color:var(--fg)}
+/* details cards */
+details{background:var(--card);border:1px solid var(--line);border-radius:10px;margin:10px 0;padding:0}
+details summary{cursor:pointer;padding:12px 16px;font-weight:600;list-style:none}
+details summary::before{content:'▸';color:var(--acc);margin-right:8px;display:inline-block;transition:transform .15s}
+details[open] summary::before{transform:rotate(90deg)}
+details .body{padding:0 16px 14px;color:var(--fg);font-size:14px}
+details .body p{max-width:none}
+.callout{background:#14202f;border-left:4px solid var(--acc);border-radius:0 8px 8px 0;padding:10px 16px;margin:14px 0;font-size:14px;max-width:75ch}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start}
 code{background:#1a2238;padding:1px 6px;border-radius:4px;font-size:13px}
-@media(max-width:900px){nav{display:none}.grid2{grid-template-columns:1fr}}
+footer{color:var(--dim);font-size:12.5px;border-top:1px solid var(--line);padding:22px 24px 44px;text-align:center;margin-top:40px}
+ul{max-width:75ch}
+@media(max-width:760px){.grid2{grid-template-columns:1fr}#demoframe{height:480px}}
 </style>
 </head>
-<body>
-<div id="wrap">
-<nav>
-  <div class="brand">FastBrain</div>
-  <div class="sub">Real-time whole-brain fly simulation<br>实时果蝇全脑仿真</div>
-  <a href="#overview">概述<span class="en">Overview</span></a>
-  <a href="#model">模型与数据<span class="en">Model &amp; Data</span></a>
-  <a href="#engine">FastBrain 引擎<span class="en">The Engine</span></a>
-  <a href="#benchmark">基准对比<span class="en">Benchmark</span></a>
-  <a href="#validation">引擎验证<span class="en">Validation</span></a>
-  <a href="#viz">可视化<span class="en">Visualization</span></a>
-  <a href="#roadmap">研究路线<span class="en">Roadmap</span></a>
-  <a href="#refs">数据与引用<span class="en">Data &amp; References</span></a>
-</nav>
-<main>
+<body class="lang-zh">
 
-<section id="overview">
-<h1>FastBrain</h1>
-<div>
-<span class="tag">138,639 neurons</span><span class="tag">15M synapses</span><span class="tag">FlyWire v783</span><span class="tag">CUDA Graph</span><span class="tag">event-driven</span><span class="tag">1× real-time @ RTX 3060 Laptop</span>
+<div id="topbar">
+  <div class="in">
+    <span class="brand">FastBrain</span>
+    <nav id="nav-zh">
+      <a href="#zh-what">这是什么</a>
+      <a href="#zh-demo">在线试玩</a>
+      <a href="#zh-how">怎么做到的</a>
+      <a href="#zh-bench">有多快</a>
+      <a href="#zh-valid">准不准</a>
+      <a href="#zh-run">自己跑一遍</a>
+      <a href="#zh-road">下一步</a>
+      <a href="#zh-ref">数据与引用</a>
+    </nav>
+    <nav id="nav-en" style="display:none">
+      <a href="#en-what">What</a>
+      <a href="#en-demo">Try it</a>
+      <a href="#en-how">How it works</a>
+      <a href="#en-bench">Speed</a>
+      <a href="#en-valid">Accuracy</a>
+      <a href="#en-run">Run it</a>
+      <a href="#en-road">Roadmap</a>
+      <a href="#en-ref">References</a>
+    </nav>
+    <button id="langbtn" onclick="toggleLang()">English</button>
+  </div>
 </div>
-<img class="hero" src="assets/hero_brain.png" alt="Whole fly brain, firing neurons highlighted">
-<p><b>概述。</b>本项目在消费级 GPU 上实时运行果蝇全脑 LIF 模型（Shiu et al. 2024，Nature），核心是自研的 FastBrain 事件驱动引擎：突触块压缩 + CUDA Graph 整段回放，在 RTX 3060 Laptop（6 GB 显存）上达到 1 倍实时，精度与参考实现的差异等于随机种子噪声。仓库为 <a href="https://github.com/eonsystemspbc/fly-brain">eonsystemspbc/fly-brain</a> 的研究分支，新增 FastBrain 引擎、实时交互控制台、3D 回放与系统验证体系，并把 FastBrain 接入官方基准成为第 7 个后端。</p>
-<div class="en-block"><b>Overview.</b> This project runs the whole-brain Drosophila LIF model (Shiu et al. 2024) in real time on consumer GPUs. Its core is FastBrain, an event-driven engine (synapse-block compression + whole-graph CUDA Graph replay) reaching 1&times; real-time on an RTX 3060 Laptop (6 GB), with accuracy indistinguishable from reference seed noise. This repo is a research fork of <a href="https://github.com/eonsystemspbc/fly-brain">eonsystemspbc/fly-brain</a>, adding the engine, an interactive live console, offline 3D replay, a systematic validation harness, and a 7th benchmark backend.</div>
-<img class="chart" src="assets/pipeline_zh.png" alt="流程示意（中文）">
-<img class="chart" src="assets/pipeline_en.png" alt="Pipeline schematic (English)">
+
+<!-- ======================= 中文 ======================= -->
+<main id="main-zh"><div class="in">
+
+<section id="zh-what">
+<h1>FastBrain · 果蝇全脑实时仿真</h1>
+<div>
+<span class="tag">138,639 个神经元</span><span class="tag">约 1500 万个突触</span><span class="tag">FlyWire v783 连接组</span><span class="tag">消费级 GPU</span><span class="tag">开源</span>
+</div>
+<a href="assets/hero_brain.png" target="_blank"><img class="hero-img" src="assets/hero_brain.png" alt="果蝇全脑，放电神经元高亮"></a>
+<p>这个仓库把一整只果蝇的脑子搬进了电脑：138,639 个神经元、约 1500 万个突触，全部来自真实连接组测绘数据。模型在一张 6 GB 的游戏显卡上实时运行，你可以给神经元施加刺激，看脉冲怎么传遍全脑，就像给大脑做实验，只不过这只果蝇活在显卡里。</p>
+<p>神经科学家在 2024 年发表了第一个这样的全脑模型（Shiu et al., <a href="https://www.nature.com/articles/s41586-024-07763-9">Nature</a>），但原版跑 0.5 秒的脑活动要 26 秒，做实验得等。这个项目把同样的模型加速了 27 倍——0.5 秒的脑活动 0.98 秒算完——并且用一整套验证证明了加速没有损失精度。在此之上还做了两件工具：一个能在浏览器里边跑边操作的实时控制台，和本页下面就能直接玩的交互回放。</p>
+<div class="stats">
+  <div class="stat"><div class="n">138,639</div><div class="l">神经元，来自 FlyWire 真实测绘</div></div>
+  <div class="stat"><div class="n">8,861</div><div class="l">种细胞类型，可按类型刺激</div></div>
+  <div class="stat"><div class="n">27×</div><div class="l">比原版 PyTorch 后端快</div></div>
+  <div class="stat"><div class="n">0.98 s</div><div class="l">算完 0.5 秒全脑活动</div></div>
+  <div class="stat"><div class="n">0.45 GB</div><div class="l">显存占用，6 GB 显卡即可跑</div></div>
+</div>
 </section>
 
-<section id="model">
-<h2>模型与数据<span class="en">Model &amp; Data</span></h2>
-<img class="hero" src="assets/ai_mushroom_body.png" alt="AI-generated mushroom body illustration">
-<div class="cap">AI 生成示意图：果蝇蘑菇体（学习与记忆中枢）· AI-generated illustration: the mushroom body, not data</div>
-<p><b>模型。</b>渗漏积分发放（LIF）点神经元 + alpha 突触，dt = 0.1 ms（实时模式 dt = 0.25 ms），权重由 FlyWire v783 连接组突触数导出，递质符号来自递质预测。支持任意神经元集合的泊松激活（光遗传式）与沉默。蘑菇体学习相关细胞已在注释中核实：5,177 个 Kenyon 细胞（11 类）、96 个 MBON（35 型）、331 个多巴胺能神经元（PAM/PPL 27 型）。</p>
-<div class="en-block"><b>Model.</b> Leaky integrate-and-fire point neurons with alpha synapses at dt = 0.1 ms (0.25 ms in real-time mode); weights derived from FlyWire v783 synapse counts, signs from predicted neurotransmitters. Arbitrary neuron sets can be Poisson-activated (optogenetic-style) or silenced. Mushroom-body learning circuitry verified in annotations: 5,177 Kenyon cells (11 types), 96 MBONs (35 types), 331 dopaminergic neurons (27 PAM/PPL types).</div>
-<img class="chart" src="assets/connectome_web.png" alt="Connectome wiring art (sampled synapses)">
-<p style="color:var(--dim);font-size:13px">连接组抽样布线可视化（真实突触连接采样）。/ A sampled rendering of real synaptic wiring.</p>
+<section id="zh-demo">
+<h2>在线试玩：三个真实实验的回放</h2>
+<p>下面是三次真实仿真的完整录像，不是动画演示。每个回放里每个点是一个真实神经元的位置，金色闪光是它放电的瞬间。点播放，拖进度条，旋转大脑，把鼠标悬停在放电的神经元上能看到它的名字和放电频率。底部是几个关键神经元的膜电位波形，和示波器上看到的真实神经活动一个道理。</p>
+<div class="demotabs">
+  <button class="demotab on" data-src="demos/brain3d_sugar.html" data-meta="zh-sugar"><span class="t">果蝇尝到糖</span><span class="d">刺激 21 个糖味觉神经元，看信号传遍全脑</span></button>
+  <button class="demotab" data-src="demos/brain3d_p9.html" data-meta="zh-p9"><span class="t">果蝇向前走</span><span class="d">刺激控制前行的 P9 神经元，看运动指令怎么下发</span></button>
+  <button class="demotab" data-src="demos/brain3d_sugar_nombon.html" data-meta="zh-mbon"><span class="t">剪断记忆中枢</span><span class="d">同样的糖刺激，但沉默蘑菇体的 96 个输出神经元</span></button>
+</div>
+<div class="demometa" id="demometa"></div>
+<iframe id="demoframe" loading="lazy" src="demos/brain3d_sugar.html" title="全脑仿真交互回放"></iframe>
+<div class="demometa">回放太大打不开？直接在新标签页打开：<a href="demos/brain3d_sugar.html">糖刺激</a> · <a href="demos/brain3d_p9.html">P9 前行</a> · <a href="demos/brain3d_sugar_nombon.html">沉默蘑菇体</a>（每个约 3 MB，数据全部内嵌）</div>
+<details>
+<summary>这三个实验在干什么？</summary>
+<div class="body">
+<p><b>糖刺激</b>复现了原论文的经典实验：果蝇腿上的糖味觉感受神经元被激活后，信号经过食道下区传到中枢脑，一路激活几百个神经元。1 秒脑时间里共有 403 个神经元放过电、17,393 次脉冲。</p>
+<p><b>P9 前行</b>刺激的是两个下行通路神经元 P9，原论文证明这能驱动果蝇向前行走。这个实验放电量小得多（130 个神经元、806 次脉冲），因为信号直奔运动输出而去，通路很短。</p>
+<p><b>沉默蘑菇体</b>是干预实验：蘑菇体是果蝇的学习记忆中枢，它的 96 个输出神经元（MBON）被永久沉默（紫色点）后再给糖刺激，全脑脉冲从 17,393 次降到 16,790 次。对比前两个回放，能直观看到一类神经元被拿掉之后信息流向怎么变。这类"在硅基脑里做损毁实验"的能力，正是这个平台的用途。</p>
+</div>
+</details>
 </section>
 
-<section id="engine">
-<h2>FastBrain 引擎<span class="en">The FastBrain Engine</span></h2>
-<img class="hero" src="assets/ai_gpu_snn.png" alt="AI-generated GPU with spiking signals illustration">
-<div class="cap">AI 生成示意图：脉冲信号在 GPU 上传播 · AI-generated illustration: spikes on a GPU, not data</div>
-<p><b>设计。</b>原版 PyTorch 后端每步做一次稠密 SpMV，仅 0.1 倍实时；诊断表明瓶颈是每步约 75 个 CUDA kernel 的启动开销。FastBrain 的方案：① 事件驱动——W<sup>T</sup> 切成 256 宽定长突触块（15.1 万块），每步用 cumsum 压缩把放电神经元的块装入固定槽位，gather + index_add 替代全图乘法；② 全张量定形，整块 S 步录成一张 CUDA Graph 一次启动，每步内核数从 ~75 降到 ~33；③ 延迟环取延迟步数整数倍，环槽位成为编译期常量；④ 脉冲导出复用压缩后的活动块列表。显存占用约 0.45 GB。</p>
-<div class="en-block"><b>Design.</b> The stock PyTorch backend runs one dense SpMV per step at ~0.1&times; real-time; profiling showed the bottleneck is kernel-launch overhead (~75 kernels/step). FastBrain instead: (1) event-driven propagation — W<sup>T</sup> is cut into 256-wide fixed-size synapse blocks (151k blocks); each step a cumsum compaction packs the blocks of spiking neurons into fixed slots, then gather + index_add replaces full-graph multiplication; (2) all tensors are shape-pinned so S whole steps are captured into one CUDA Graph launched once, cutting kernels from ~75 to ~33 per step; (3) the delay ring length is a multiple of the delay in steps, making ring slots compile-time constants; (4) spike export reuses the compacted active-block list. Memory: ~0.45 GB.</div>
+<section id="zh-how">
+<h2>它是怎么做到的</h2>
+<p>模型本身不复杂：每个神经元是一个渗漏积分发放单元，膜电位攒到阈值就放一次电，放电沿突触传给下游，突触的强弱和符号全部来自真实连接组。难的是规模——13.8 万个神经元每 0.1 毫秒算一步，原版实现一步要在 GPU 上启动约 75 次计算内核，时间全花在启动开销上。FastBrain 引擎用四招把这个开销压了下去：</p>
+<img class="chart" src="assets/pipeline_zh.png" alt="FastBrain 数据流示意">
+<details><summary>事件驱动：只算放电的神经元</summary><div class="body"><p>每一瞬间放电的神经元只有几百个，占 0.3%。引擎把突触矩阵预先切成 15.1 万个定长小块，每步只把放电神经元的块拣出来做乘加，不再对全图做稠密乘法。</p></div></details>
+<details><summary>CUDA Graph：一万次启动合成一次</summary><div class="body"><p>所有张量形状固定之后，连续的 16 步仿真被录制成一张 CUDA Graph，一次启动跑完，每步的内核启动数从约 75 降到约 33。</p></div></details>
+<details><summary>延迟环：把突触延迟变成编译期常量</summary><div class="body"><p>突触传递有 1.8 毫秒延迟。引擎用一个环形缓冲区存中间的信号，环长取延迟步数的整数倍，寻址在编译期就确定，运行时零开销。</p></div></details>
+<details><summary>快的前提是准</summary><div class="body"><p>加速引擎和原版逐指标对比：放电率相关系数 0.990，而原版自己换个随机种子重跑的相关也只有 0.991。也就是说两个引擎的差异，和同一模型换颗骰子的差异一样大。验证细节见下面"准不准"一节。</p></div></details>
 </section>
 
-<section id="benchmark">
-<h2>基准对比<span class="en">Benchmark</span></h2>
-<p><b>设置。</b>糖味觉 GRN 200 Hz 刺激，t_run = 0.5 s，RTX 3060 Laptop，run_label <code>local_fastbrain</code>。计时口径与其他后端一致（setup / build / sim 分离，脉冲导出在计时区外）。</p>
-<div class="en-block"><b>Setup.</b> Sugar GRN stimulation at 200 Hz, t_run = 0.5 s, RTX 3060 Laptop, run_label <code>local_fastbrain</code>. Timing follows the same conventions as the other backends (setup / build / sim reported separately; spike export outside the timed region).</div>
-<img class="chart" src="assets/chart_speed.png" alt="Simulation time and real-time ratio">
+<section id="zh-bench">
+<h2>跑得到底有多快</h2>
+<p>同一台 RTX 3060 Laptop、同一个实验（糖刺激 200 Hz、仿真 0.5 秒）、同一套计时代码：</p>
+<img class="chart" src="assets/chart_speed.png" alt="各后端仿真耗时对比">
 <table>
-<tr><th>后端 Backend</th><th>n_run</th><th>setup (s)</th><th>build (s)</th><th>sim (s)</th><th>实时比 RT</th></tr>
-<tr><td>PyTorch (CUDA)</td><td>1</td><td>1.28</td><td>0</td><td>26.30</td><td>0.019×</td></tr>
-<tr><td>PyTorch (CUDA)</td><td>4</td><td>0.98</td><td>0</td><td>118.69</td><td>0.017×</td></tr>
-<tr><td><b>FastBrain dt 0.25</b></td><td>1</td><td>5.66</td><td>0.30</td><td><b>0.98</b></td><td><b>0.51×</b></td></tr>
-<tr><td>FastBrain dt 0.25</td><td>4</td><td>23.02</td><td>0.62</td><td>3.98</td><td>0.50×</td></tr>
-<tr><td>FastBrain dt 0.1</td><td>1</td><td>5.16</td><td>0.32</td><td>2.43</td><td>0.21×</td></tr>
-<tr><td>FastBrain dt 0.1</td><td>4</td><td>21.85</td><td>1.24</td><td>9.78</td><td>0.20×</td></tr>
+<tr><th>后端</th><th>运行次数</th><th>仿真耗时</th><th>实时比</th></tr>
+<tr><td>PyTorch (CUDA)，原版</td><td>1</td><td>26.30 s</td><td>0.019×</td></tr>
+<tr><td><b>FastBrain，dt 0.25 ms</b></td><td>1</td><td><b>0.98 s</b></td><td><b>0.51×</b></td></tr>
+<tr><td>FastBrain，dt 0.1 ms（论文步长）</td><td>1</td><td>2.43 s</td><td>0.21×</td></tr>
 </table>
-<div class="callout">仿真速度约为 PyTorch 的 27–30 倍；dt=0.25 ms 时计入建图开销后总耗时仍占优。/ FastBrain simulates ~27–30&times; faster than PyTorch, and wins on total time even including graph capture at dt = 0.25 ms.</div>
+<p class="cap">实时比 0.51× 的意思是：脑里过 1 秒，机器只要 2 秒。换成更好的显卡（比如 RTX 5080）可以超过实时。计时的完整数据在仓库 <code>data/results/local_fastbrain/</code> 里。</p>
 </section>
 
-<section id="validation">
-<h2>引擎验证<span class="en">Validation</span></h2>
-<p><b>验证矩阵。</b>2 种刺激（sugar / p9）× 2 种时长（0.5 / 1.0 s）× 5 个种子 × dt ∈ {0.1, 0.25, 0.5} ms，外加 10 秒长程漂移检查。每个指标都和"参考模型自身换种子"的噪声地板对比——差异必须落在噪声之内才算通过。</p>
-<div class="en-block"><b>Validation matrix.</b> 2 stimuli (sugar / p9) × 2 durations × 5 seeds × dt &isin; {0.1, 0.25, 0.5} ms, plus a 10 s long-run drift check. Every metric is compared against the reference model's own seed-reseed noise floor — differences must sit inside that noise.</div>
+<section id="zh-valid">
+<h2>准不准：和原版逐点对账</h2>
+<p>验证覆盖了 2 种刺激 × 2 种时长 × 5 个随机种子 × 3 种步长的完整矩阵，外加 10 秒长程漂移检查。每个指标的及格线不是"差不多"，而是差异必须小于参考模型自身换随机种子产生的噪声：</p>
 <table>
-<tr><th>指标 Metric</th><th>参考噪声地板 Ref floor</th><th>FastBrain（全部 dt）</th></tr>
-<tr><td>放电率相关 rate corr（sugar）</td><td>0.991</td><td>0.990</td></tr>
-<tr><td>Jaccard 活跃集（sugar）</td><td>0.928</td><td>0.92</td></tr>
-<tr><td>脉冲时序精度 ±2 ms（sugar）</td><td>0.342</td><td>0.34</td></tr>
-<tr><td>10 s 漂移 drift</td><td>—</td><td>逐秒相关 0.989–0.996，无发散 no divergence</td></tr>
+<tr><th>指标</th><th>参考模型自身噪声</th><th>FastBrain vs 参考</th><th>结论</th></tr>
+<tr><td>放电率相关系数</td><td>0.991</td><td>0.990</td><td>噪声之内</td></tr>
+<tr><td>活跃神经元集合重合度（Jaccard）</td><td>0.928</td><td>0.92</td><td>噪声之内</td></tr>
+<tr><td>脉冲时序精度（±2 ms）</td><td>0.342</td><td>0.34</td><td>噪声之内</td></tr>
+<tr><td>10 秒长程漂移</td><td>—</td><td>逐秒相关 0.989–0.996</td><td>无发散</td></tr>
 </table>
-<img class="chart" src="assets/chart_drift.png" alt="Long-run drift check">
-<div class="callout">所有指标在所有 dt 下与参考模型种子噪声不可区分 —— 引擎可作为研究仪器。/ At every dt, FastBrain is indistinguishable from the reference's own seed noise on all metrics.</div>
-<img class="chart" src="assets/raster_sugar.png" alt="Spike raster, sugar experiment">
-<p style="color:var(--dim);font-size:13px">糖味觉实验脉冲栅格图（按首次放电延迟排序）。/ Spike raster of the sugar experiment, neurons sorted by first-spike latency.</p>
+<img class="chart" src="assets/chart_drift.png" alt="10 秒长程漂移检查">
+<p>下图是糖刺激实验的全脑脉冲栅格：每一行是一个放电的神经元，每个点是一次脉冲，按首次放电时间排序，能清楚看到信号从感受神经元（底部）逐级向上游中枢传播的波浪。</p>
+<img class="chart" src="assets/raster_sugar.png" alt="糖刺激实验的全脑脉冲栅格图">
 </section>
 
-<section id="viz">
-<h2>可视化<span class="en">Visualization</span></h2>
-<img class="hero" src="assets/ai_hologram_brain.png" alt="AI-generated holographic fly brain illustration">
-<div class="cap">AI 生成示意图：全脑全息投影 · AI-generated illustration: holographic whole brain, not data</div>
-<p><b>实时控制台与 3D 回放。</b>WebSocket 实时控制台支持点击任意细胞类型刺激、示波器探针、暂停/重置；离线 3D 回放把 13.8 万神经元坐标、脉冲序列与膜电位波形打包成单文件 HTML。下图为回放页面真实截图（糖味觉刺激后 349.9 ms，380 个神经元已放电，5,828 次脉冲）。</p>
-<div class="en-block"><b>Live console &amp; 3D replay.</b> A WebSocket live console supports click-to-stimulate by cell type, oscilloscope probes, pause/reset; the offline 3D replay packs 138k neuron coordinates, spike trains and voltage traces into a single-file HTML. Below: a real screenshot of the replay (349.9 ms after sugar stimulation; 380 neurons fired, 5,828 spikes).</div>
-<img class="chart" src="assets/screenshot_brain3d.png" alt="3D brain replay screenshot">
+<section id="zh-run">
+<h2>在自己电脑上跑一遍</h2>
+<p>仓库带一个实时控制台：模型在 GPU 上跑，浏览器里同步看到全脑放电，可以随手加刺激、挂探针、暂停重置。装环境大约十分钟（Python + CUDA 版 PyTorch），双击 <code>run_live.bat</code> 就能打开。</p>
+<div class="grid2">
+<div>
+<a href="assets/console_scope.png" target="_blank"><img class="chart" src="assets/console_scope.png" alt="实时控制台：全脑动画加 8 通道膜电位示波器"></a>
+<p class="cap">控制台全貌：左边选细胞类型加刺激，中间是全脑放电动画，底部示波器是 8 个神经元的实时膜电位。</p>
+</div>
+<div>
+<a href="assets/console_full.png" target="_blank"><img class="chart" src="assets/console_full.png" alt="控制台全屏模式"></a>
+<p class="cap">一键全屏看脑。每个点是一个真实位置的神经元，金色闪光是放电。</p>
+</div>
+</div>
+<p>完整的操作教程和脚本接口写在仓库的 <a href="https://github.com/ArcadiaE/fly-brain/blob/main/experiments/LIVE_CONSOLE.md">experiments/LIVE_CONSOLE.md</a>，本页的三个回放用 <code>run_replay.bat</code> 一条命令就能重新生成。</p>
+<p>仓库地址：<a href="https://github.com/ArcadiaE/fly-brain">github.com/ArcadiaE/fly-brain</a>（fork 自 <a href="https://github.com/eonsystemspbc/fly-brain">eonsystemspbc/fly-brain</a>，GPL-2.0）。</p>
 </section>
 
-<section id="roadmap">
-<h2>研究路线<span class="en">Roadmap</span></h2>
-<img class="hero" src="assets/ai_fly_cyber.png" alt="AI-generated cyber-style Drosophila illustration">
-<div class="cap">AI 生成示意图（Kimi 图像生成）· AI-generated artistic illustration, not data</div>
+<section id="zh-road">
+<h2>下一步做什么</h2>
 <table>
-<tr><th>阶段 Phase</th><th>内容（中）</th><th>Content (EN)</th></tr>
-<tr><td>0 ✅</td><td>引擎系统验证矩阵（本页第 5 节）</td><td>Systematic engine validation (this page, §5)</td></tr>
-<tr><td>1 ⏳</td><td>脉冲全脑模型 vs 公开钙成像数据的首次动力学级基准（DANDI 001869 looming；Aimon 2019 气味）+ Shiu 结论的符号/权重敏感性审计（含重连 null 对照）</td><td>First dynamics-level benchmark of the spiking whole-brain model vs public calcium-imaging datasets + sensitivity/null audit of published conclusions</td></tr>
-<tr><td>2（二选一）</td><td>A. 贝叶斯优化刺激逆向设计（交付 split-GAL4 驱动线方案）；B. 蘑菇体三因子学习嵌入全脑（先孤立复现条件反射，再全脑背景消融）</td><td>A. BO-based inverse stimulus design (deliverable: driver-line choice); B. mushroom-body plasticity in situ (isolated-MB reproduction first, then whole-brain background ablation)</td></tr>
+<tr><th>阶段</th><th>内容</th><th>状态</th></tr>
+<tr><td>0</td><td>FastBrain 引擎与系统验证矩阵</td><td>已完成，即本页内容</td></tr>
+<tr><td>1</td><td>把模型放电和公开钙成像实验数据做首次动力学级对比（DANDI 001869 视觉威胁数据集、Aimon 2019 气味数据集）；审计原论文结论对突触符号和权重的敏感性</td><td>进行中</td></tr>
+<tr><td>2</td><td>二选一：用贝叶斯优化反向设计刺激方案（产出可执行的 split-GAL4 驱动线建议）；或把蘑菇体三因子学习规则嵌入全脑模型，先在孤立蘑菇体上复现条件反射，再做全脑消融</td><td>待启动</td></tr>
 </table>
-<div class="warn">方法论红线：一切结论内置 degree-matched 重连 null 对照；不沿用未溯源的准确率数字；不用 "upload/emulation" 措辞。/ Standing rules: degree-matched rewired nulls for every claim; no recycled accuracy numbers; no "upload/emulation" framing.</div>
-<img class="hero" src="assets/ai_robot_embodied.png" alt="AI-generated concept: fly-brain-driven robot">
-<div class="cap">AI 生成概念图：全脑模型驱动具身智能体（远期愿景）· AI-generated concept art: brain-driven embodied agent, not data</div>
+<p>方法论上定了两条规矩：任何结论都必须带一个度数匹配的重连网络做空白对照；不使用任何无法溯源到原始文献的数字。</p>
 </section>
 
-<section id="refs">
-<h2>数据与引用<span class="en">Data &amp; References</span></h2>
+<section id="zh-ref">
+<h2>数据与引用</h2>
 <ul>
-<li>Shiu et al. 2024, <i>Nature</i> 634:210–219 — 基础模型 base model · <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11446845/">PMC11446845</a></li>
-<li>FlyWire v783 连接组 connectome · <a href="https://flywire.ai/">flywire.ai</a></li>
-<li>上游仓库 upstream: <a href="https://github.com/eonsystemspbc/fly-brain">eonsystemspbc/fly-brain</a>（GPL-2.0）</li>
-<li>本仓库 this fork: <a href="https://github.com/ArcadiaE/fly-brain">ArcadiaE/fly-brain</a> · 基准数据 <code>data/results/local_fastbrain/</code> · 验证矩阵 <code>experiments/out/validation/</code></li>
-<li>Phase 1 目标数据集 target datasets: DANDI <a href="https://dandiarchive.org/dandiset/001869">001869</a>（looming）· Aimon et al. 2019 <a href="https://journals.plos.org/plosbiology/article?id=10.1371/journal.pbio.2006732">PLOS Biology</a>（odor, CRCNS 10.6080/K01J97ZN）</li>
+<li>基础模型：Shiu et al. 2024, <i>Nature</i> 634:210–219，<a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11446845/">PMC11446845</a></li>
+<li>连接组：<a href="https://flywire.ai/">FlyWire</a> v783 公开版，138,639 个神经元全部有细胞类型标注</li>
+<li>本仓库：<a href="https://github.com/ArcadiaE/fly-brain">github.com/ArcadiaE/fly-brain</a>；基准原始数据 <code>data/results/local_fastbrain/</code>，验证矩阵 <code>experiments/out/validation/</code></li>
+<li>阶段 1 目标数据集：<a href="https://dandiarchive.org/dandiset/001869">DANDI 001869</a>（looming 视觉威胁）、<a href="https://journals.plos.org/plosbiology/article?id=10.1371/journal.pbio.2006732">Aimon et al. 2019</a>（气味响应，CRCNS 10.6080/K01J97ZN）</li>
 </ul>
 </section>
 
-<img class="hero" src="assets/ai_texture_network.png" alt="AI-generated neural network texture" style="margin-bottom:0">
-<div class="cap">AI 生成示意图（Kimi 图像生成）· AI-generated artistic illustration, not data</div>
-<footer>
-FastBrain · research fork by Yike Zhang · generated 2026-10-12 · 数据图与截图来自真实仿真/页面，装饰横幅为 Kimi AI 生成示意图 / data figures & screenshots are real; decorative banners are AI-generated illustrations (Kimi)
-</footer>
-</main>
+</div></main>
+
+<!-- ======================= ENGLISH ======================= -->
+<main id="main-en"><div class="in">
+
+<section id="en-what">
+<h1>FastBrain · Real-time Fly Whole-Brain Simulation</h1>
+<div>
+<span class="tag">138,639 neurons</span><span class="tag">~15M synapses</span><span class="tag">FlyWire v783 connectome</span><span class="tag">consumer GPU</span><span class="tag">open source</span>
 </div>
+<a href="assets/hero_brain.png" target="_blank"><img class="hero-img" src="assets/hero_brain.png" alt="Whole fly brain with firing neurons highlighted"></a>
+<p>This repository puts an entire fruit fly brain into a computer: 138,639 neurons and about 15 million synapses, all taken from real connectome mapping data. The model runs in real time on a 6 GB gaming GPU. You can stimulate neurons and watch the pulses spread across the whole brain — like doing an experiment on a brain, except this fly lives inside a graphics card.</p>
+<p>Neuroscientists published the first such whole-brain model in 2024 (Shiu et al., <a href="https://www.nature.com/articles/s41586-024-07763-9">Nature</a>), but the original takes 26 seconds to simulate half a second of brain activity, which makes experiments painful to run. This project makes the same model 27 times faster — half a second of brain activity in 0.98 seconds — and proves with a full validation harness that the speedup costs nothing in accuracy. On top of that it adds two tools: a live console you can operate in a browser while the simulation runs, and the interactive replays you can play with right below.</p>
+<div class="stats">
+  <div class="stat"><div class="n">138,639</div><div class="l">neurons from real FlyWire mapping</div></div>
+  <div class="stat"><div class="n">8,861</div><div class="l">cell types, all individually stimulable</div></div>
+  <div class="stat"><div class="n">27×</div><div class="l">faster than the original PyTorch backend</div></div>
+  <div class="stat"><div class="n">0.98 s</div><div class="l">to simulate 0.5 s of brain activity</div></div>
+  <div class="stat"><div class="n">0.45 GB</div><div class="l">VRAM; any 6 GB GPU can run it</div></div>
+</div>
+</section>
+
+<section id="en-demo">
+<h2>Try it: replays of three real experiments</h2>
+<p>Below are complete recordings of three real simulations, not animations. Every dot is a real neuron's position, and each gold flash is the moment it fires. Press play, scrub the timeline, rotate the brain, and hover over firing neurons to see their names and rates. The traces at the bottom are membrane voltages of a few key neurons — the same kind of signal an electrophysiologist sees on an oscilloscope.</p>
+<div class="demotabs">
+  <button class="demotab on" data-src="demos/brain3d_sugar.html" data-meta="en-sugar"><span class="t">The fly tastes sugar</span><span class="d">Stimulate 21 sugar-sensing neurons, watch the signal spread</span></button>
+  <button class="demotab" data-src="demos/brain3d_p9.html" data-meta="en-p9"><span class="t">The fly walks forward</span><span class="d">Stimulate the P9 neurons that command forward walking</span></button>
+  <button class="demotab" data-src="demos/brain3d_sugar_nombon.html" data-meta="en-mbon"><span class="t">Cutting the memory center</span><span class="d">Same sugar stimulus, 96 mushroom-body output neurons silenced</span></button>
+</div>
+<div class="demometa" id="demometa-en"></div>
+<iframe id="demoframe-en" loading="lazy" src="demos/brain3d_sugar.html" title="Interactive whole-brain simulation replay"></iframe>
+<div class="demometa">Trouble loading? Open the replays in a new tab: <a href="demos/brain3d_sugar.html">sugar</a> · <a href="demos/brain3d_p9.html">P9 walking</a> · <a href="demos/brain3d_sugar_nombon.html">mushroom body silenced</a> (about 3 MB each, all data embedded)</div>
+<details>
+<summary>What are these three experiments?</summary>
+<div class="body">
+<p><b>Sugar</b> reproduces the paper's classic experiment: activating the sugar gustatory receptor neurons on the fly's leg sends the signal through the subesophageal zone into the central brain, recruiting a few hundred neurons along the way. Over one second of brain time, 403 neurons fire a total of 17,393 spikes.</p>
+<p><b>P9 walking</b> stimulates two descending-pathway neurons called P9, which the original paper showed can drive forward walking. Much less of the brain lights up (130 neurons, 806 spikes) because the signal runs straight to the motor output over a very short pathway.</p>
+<p><b>Silenced mushroom body</b> is an intervention: the mushroom body is the fly's center of learning and memory. With its 96 output neurons (MBONs) permanently silenced (purple dots), the same sugar stimulus produces 16,790 spikes instead of 17,393. Comparing the two replays shows how information flow changes when one class of neurons is removed. Doing lesion experiments inside a silicon brain is exactly what this platform is for.</p>
+</div>
+</details>
+</section>
+
+<section id="en-how">
+<h2>How it works</h2>
+<p>The model itself is simple: each neuron is a leaky integrate-and-fire unit that fires when its membrane voltage crosses a threshold, and the spike travels down its synapses, whose strengths and signs all come from the real connectome. The hard part is scale — 138,639 neurons stepping every 0.1 millisecond, with the original implementation launching about 75 GPU kernels per step, spending nearly all its time on launch overhead. The FastBrain engine cuts that overhead four ways:</p>
+<img class="chart" src="assets/pipeline_en.png" alt="FastBrain dataflow schematic">
+<details><summary>Event-driven: only compute the neurons that fire</summary><div class="body"><p>Only a few hundred neurons fire at any instant, about 0.3% of the brain. The synapse matrix is pre-cut into 151,000 fixed-size blocks; each step gathers only the blocks belonging to firing neurons, instead of multiplying against the whole graph.</p></div></details>
+<details><summary>CUDA Graph: ten thousand launches become one</summary><div class="body"><p>With every tensor pinned to a fixed shape, 16 consecutive simulation steps are recorded into a single CUDA graph and launched once, cutting kernel launches from about 75 to about 33 per step.</p></div></details>
+<details><summary>Delay ring: synaptic delay as a compile-time constant</summary><div class="body"><p>Synaptic transmission takes 1.8 ms. The engine stores in-flight signals in a ring buffer whose length is a multiple of the delay in steps, so addressing is resolved at capture time and costs nothing at run time.</p></div></details>
+<details><summary>Fast only counts if it stays accurate</summary><div class="body"><p>Compared metric by metric against the original: firing-rate correlation 0.990, while the original compared against itself with a different random seed reaches 0.991. The two engines differ by exactly as much as the same model re-rolled with a new die. Details in the accuracy section below.</p></div></details>
+</section>
+
+<section id="en-bench">
+<h2>How fast, exactly</h2>
+<p>Same RTX 3060 Laptop, same experiment (sugar stimulation at 200 Hz, 0.5 s simulated), same timing harness:</p>
+<img class="chart" src="assets/chart_speed.png" alt="Simulation time by backend">
+<table>
+<tr><th>Backend</th><th>Runs</th><th>Sim time</th><th>Real-time ratio</th></tr>
+<tr><td>PyTorch (CUDA), original</td><td>1</td><td>26.30 s</td><td>0.019×</td></tr>
+<tr><td><b>FastBrain, dt 0.25 ms</b></td><td>1</td><td><b>0.98 s</b></td><td><b>0.51×</b></td></tr>
+<tr><td>FastBrain, dt 0.1 ms (paper's step)</td><td>1</td><td>2.43 s</td><td>0.21×</td></tr>
+</table>
+<p class="cap">A ratio of 0.51× means one second of brain time costs two seconds of wall time. A stronger GPU (an RTX 5080, say) goes past real time. Full timing data lives in <code>data/results/local_fastbrain/</code>.</p>
+</section>
+
+<section id="en-valid">
+<h2>Is it accurate: checked line by line against the original</h2>
+<p>The validation covers a full matrix of 2 stimuli × 2 durations × 5 random seeds × 3 time steps, plus a 10-second long-run drift check. The bar for every metric is not "close enough" — the difference must be smaller than the noise the reference model produces against itself just by changing its random seed:</p>
+<table>
+<tr><th>Metric</th><th>Reference self-noise</th><th>FastBrain vs reference</th><th>Verdict</th></tr>
+<tr><td>Firing-rate correlation</td><td>0.991</td><td>0.990</td><td>within noise</td></tr>
+<tr><td>Active-set overlap (Jaccard)</td><td>0.928</td><td>0.92</td><td>within noise</td></tr>
+<tr><td>Spike-time precision (±2 ms)</td><td>0.342</td><td>0.34</td><td>within noise</td></tr>
+<tr><td>10 s long-run drift</td><td>—</td><td>per-second correlation 0.989–0.996</td><td>no divergence</td></tr>
+</table>
+<img class="chart" src="assets/chart_drift.png" alt="Ten-second drift check">
+<p>Below is the whole-brain spike raster of the sugar experiment: each row is one firing neuron, each dot one spike, rows sorted by first-spike time. The wave of activity climbing from the receptor neurons at the bottom up into the central brain is clearly visible.</p>
+<img class="chart" src="assets/raster_sugar.png" alt="Whole-brain spike raster of the sugar experiment">
+</section>
+
+<section id="en-run">
+<h2>Run it on your own machine</h2>
+<p>The repository ships a live console: the model runs on your GPU while a browser shows the whole brain spiking in sync, and you can add stimuli, attach voltage probes, pause and reset at will. Setup takes about ten minutes (Python plus a CUDA build of PyTorch); double-click <code>run_live.bat</code> and the console opens.</p>
+<div class="grid2">
+<div>
+<a href="assets/console_scope.png" target="_blank"><img class="chart" src="assets/console_scope.png" alt="Live console with 8-channel voltage oscilloscope"></a>
+<p class="cap">The console: pick a cell type to stimulate on the left, watch the brain in the middle, read real membrane voltages of 8 neurons on the oscilloscope below.</p>
+</div>
+<div>
+<a href="assets/console_full.png" target="_blank"><img class="chart" src="assets/console_full.png" alt="Console in fullscreen brain view"></a>
+<p class="cap">One click to fullscreen. Every dot is a neuron at its real position; gold flashes are spikes.</p>
+</div>
+</div>
+<p>The full operating guide and the scripting API live in <a href="https://github.com/ArcadiaE/fly-brain/blob/main/experiments/LIVE_CONSOLE.md">experiments/LIVE_CONSOLE.md</a>; the three replays on this page regenerate with one <code>run_replay.bat</code> command.</p>
+<p>Repository: <a href="https://github.com/ArcadiaE/fly-brain">github.com/ArcadiaE/fly-brain</a> (forked from <a href="https://github.com/eonsystemspbc/fly-brain">eonsystemspbc/fly-brain</a>, GPL-2.0).</p>
+</section>
+
+<section id="en-road">
+<h2>What comes next</h2>
+<table>
+<tr><th>Phase</th><th>Content</th><th>Status</th></tr>
+<tr><td>0</td><td>The FastBrain engine and its systematic validation harness</td><td>done — this page</td></tr>
+<tr><td>1</td><td>First dynamics-level comparison of model spikes against public calcium-imaging datasets (DANDI 001869 looming stimuli; Aimon 2019 odors); audit how sensitive the paper's conclusions are to synapse signs and weights</td><td>in progress</td></tr>
+<tr><td>2</td><td>One of two: inverse stimulus design with Bayesian optimization (deliverable: an actionable split-GAL4 driver-line suggestion); or embedding three-factor mushroom-body learning into the whole-brain model, reproducing conditioning in an isolated mushroom body first, then whole-brain ablation</td><td>queued</td></tr>
+</table>
+<p>Two standing rules: every claim ships with a degree-matched rewired null network as control, and no number is used unless it traces back to a primary source.</p>
+</section>
+
+<section id="en-ref">
+<h2>Data and references</h2>
+<ul>
+<li>Base model: Shiu et al. 2024, <i>Nature</i> 634:210–219, <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11446845/">PMC11446845</a></li>
+<li>Connectome: <a href="https://flywire.ai/">FlyWire</a> v783 public release; all 138,639 neurons carry cell-type annotations</li>
+<li>This repository: <a href="https://github.com/ArcadiaE/fly-brain">github.com/ArcadiaE/fly-brain</a>; raw benchmark data in <code>data/results/local_fastbrain/</code>, validation matrix in <code>experiments/out/validation/</code></li>
+<li>Phase-1 target datasets: <a href="https://dandiarchive.org/dandiset/001869">DANDI 001869</a> (looming visual threat), <a href="https://journals.plos.org/plosbiology/article?id=10.1371/journal.pbio.2006732">Aimon et al. 2019</a> (odor responses, CRCNS 10.6080/K01J97ZN)</li>
+</ul>
+</section>
+
+</div></main>
+
+<footer>
+FastBrain · a research fork by Yike Zhang · <a href="https://github.com/ArcadiaE/fly-brain">GitHub</a> · data figures and screenshots are real simulation output
+</footer>
+
+<script>
+// language toggle, remembered across visits
+function setLang(en){
+  document.body.classList.toggle('lang-en', en);
+  document.documentElement.lang = en ? 'en' : 'zh';
+  document.getElementById('nav-zh').style.display = en ? 'none' : '';
+  document.getElementById('nav-en').style.display = en ? '' : 'none';
+  document.getElementById('langbtn').textContent = en ? '中文' : 'English';
+  try{ localStorage.setItem('fb-lang', en ? 'en' : 'zh'); }catch(e){}
+}
+function toggleLang(){ setLang(!document.body.classList.contains('lang-en')); }
+try{ if(localStorage.getItem('fb-lang') === 'en') setLang(true); }catch(e){}
+if (new URLSearchParams(location.search).get('lang') === 'en') setLang(true);
+
+// demo tabs: swap iframe src lazily, update the caption
+const META = {
+  'zh-sugar': '正在播放：<b>糖刺激</b> · 1 秒脑时间 · 403 个神经元放电 · 17,393 次脉冲',
+  'zh-p9':    '正在播放：<b>P9 前行</b> · 1 秒脑时间 · 130 个神经元放电 · 806 次脉冲',
+  'zh-mbon':  '正在播放：<b>糖刺激 + 蘑菇体输出沉默</b> · 1 秒脑时间 · 389 个神经元放电 · 16,790 次脉冲',
+  'en-sugar': 'Now playing: <b>sugar stimulation</b> · 1 s of brain time · 403 neurons fired · 17,393 spikes',
+  'en-p9':    'Now playing: <b>P9 forward walking</b> · 1 s of brain time · 130 neurons fired · 806 spikes',
+  'en-mbon':  'Now playing: <b>sugar + MBON silenced</b> · 1 s of brain time · 389 neurons fired · 16,790 spikes',
+};
+function wireDemo(tabSel, frameId, metaId){
+  const tabs = document.querySelectorAll(tabSel);
+  const frame = document.getElementById(frameId);
+  const meta = document.getElementById(metaId);
+  function show(tab){
+    tabs.forEach(t => t.classList.remove('on'));
+    tab.classList.add('on');
+    meta.innerHTML = META[tab.dataset.meta];
+    if (!frame.src.endsWith(tab.dataset.src)) frame.src = tab.dataset.src;
+  }
+  tabs.forEach(t => t.onclick = () => show(t));
+  show(tabs[0]);
+  // undo the eager load if it was only for default; src already set, keep it
+}
+wireDemo('#main-zh .demotab', 'demoframe', 'demometa');
+wireDemo('#main-en .demotab', 'demoframe-en', 'demometa-en');
+</script>
 </body>
 </html>

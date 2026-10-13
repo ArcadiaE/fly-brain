@@ -8,8 +8,12 @@
   :root { --bg:#07090f; --fg:#d7dbe4; --dim:#7b8496; --accent:#ffcf4a; --panel:#0f131c; --line:#222a38; --red:#ff6b6b; --blue:#6fb3ff; }
   html,body { margin:0; height:100%; background:var(--bg); color:var(--fg); font:13px/1.4 system-ui,"Segoe UI",sans-serif; overflow:hidden; }
   #app { display:grid; grid-template-columns:300px 1fr; grid-template-rows:1fr 210px; height:100vh; }
+  #app.full { grid-template-columns:0 1fr; grid-template-rows:1fr 0; }
+  #app.full #side, #app.full #bottom { display:none; }
+  #focus { position:absolute; left:14px; top:64px; z-index:6; background:rgba(27,34,48,.9); }
   #side { grid-row:1/3; background:var(--panel); border-right:1px solid var(--line); display:flex; flex-direction:column; min-height:0; }
-  #view { position:relative; min-height:0; overflow:hidden; }
+  #view { position:relative; min-height:0; overflow:hidden; grid-column:2; grid-row:1; }
+  #app.full #view { grid-column:1/3; grid-row:1/3; }
   #c3d { position:absolute; inset:0; width:100%; height:100%; }
   #bottom { background:var(--panel); border-top:1px solid var(--line); display:grid; grid-template-columns:1fr minmax(200px, 26%); min-height:0; }
   #scope { width:100%; height:100%; display:block; }
@@ -94,6 +98,7 @@
   <div id="view">
     <canvas id="c3d"></canvas>
     <div id="hud"><div class="t"><span id="tms2">0.0</span> ms</div><div class="s">拖动旋转 · 滚轮缩放 · 右键平移 · 悬停放电神经元看类型 · 点击加入示波器</div></div>
+    <button id="focus">⛶ 全屏看脑</button>
     <div id="legend"></div>
     <div id="tip"></div>
     <div id="status">连接中…</div>
@@ -176,6 +181,8 @@ let spikeWindow = [];   // [wallTime, nSpikes] for spikes/s
 let lastFrameWall = performance.now(), lastFrameStep = 0, ratio = 0;
 
 $('optic').onchange = e => { const opt = M.classes.indexOf('optic'); for (let i=0;i<N;i++) vis[i] = (sc[i]===opt && !e.target.checked) ? 0 : 1; visAttr.needsUpdate = true; };
+
+$('focus').onclick = () => { const full = $('app').classList.toggle('full'); $('focus').textContent = full ? '退出全屏' : '⛶ 全屏看脑'; requestAnimationFrame(resize); };
 
 // ---------- websocket ----------
 let ws; const send = o => ws && ws.readyState===1 && ws.send(JSON.stringify(o));

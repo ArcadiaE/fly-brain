@@ -81,7 +81,7 @@ for (const c of ['central','sensory','descending','ascending','motor','optic']) 
   const p = palette[c]; const d = document.createElement('div');
   d.innerHTML = `<i style="background:rgb(${p.map(v=>v*255|0)})"></i>${c}`; legend.appendChild(d);
 }
-legend.insertAdjacentHTML('beforeend','<div><i style="background:#ffcf4a;box-shadow:0 0 6px #ffcf4a"></i>正在放电</div><div><i style="background:#ff4d4d"></i>被刺激的神经元</div>');
+legend.insertAdjacentHTML('beforeend','<div><i style="background:#ffcf4a;box-shadow:0 0 6px #ffcf4a"></i>正在放电</div><div><i style="background:#ff4d4d"></i>被刺激的神经元</div>'+(D.sil_idx&&D.sil_idx.length?'<div><i style="background:#8c40d9"></i>被沉默的神经元</div>':''));
 
 // ---------- three.js ----------
 const canvas = document.getElementById('c3d');
@@ -96,8 +96,10 @@ const geo = new THREE.BufferGeometry();
 geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
 const base = new Float32Array(N*3);
 const stimSet = new Set(D.stim_idx);
+const silSet = new Set(D.sil_idx || []);
 for (let i=0;i<N;i++){ const p = palette[D.classes[sc[i]]]; base[i*3]=p[0]; base[i*3+1]=p[1]; base[i*3+2]=p[2]; }
 for (const i of stimSet){ base[i*3]=1; base[i*3+1]=0.3; base[i*3+2]=0.3; }
+for (const i of silSet){ base[i*3]=0.55; base[i*3+1]=0.25; base[i*3+2]=0.85; }
 geo.setAttribute('base', new THREE.BufferAttribute(base, 3));
 const flash = new Float32Array(N);
 const flashAttr = new THREE.BufferAttribute(flash, 1); flashAttr.setUsage(THREE.DynamicDrawUsage);

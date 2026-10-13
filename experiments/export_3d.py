@@ -44,6 +44,8 @@ def main():
     ap.add_argument('--exp', default='sugar', choices=['sugar', 'p9'])
     ap.add_argument('--t', type=float, default=1.0)
     ap.add_argument('--device', default='cuda' if torch.cuda.is_available() else 'cpu')
+    ap.add_argument('--silence', default='',
+                    help='cell_type prefix to silence, e.g. MBON; matching neurons never spike')
     args = ap.parse_args()
     dev = args.device
 
@@ -52,6 +54,21 @@ def main():
     exc_idx = [flyid2i[n] for n in exp['neu_exc']]
     weights = get_weights(str(path_con), str(path_comp), str(path_wt), csr=True).to(dev)
     n = weights.shape[0]
+
+    ann = pd.read_csv(ANN_PATH, sep='\t', low_memory=False).set_index('root_id')
+    ids = np.array([i2flyid[i] for i in range(n)], dtype=np.int64)
+    a = ann.reindex(ids)
+
+    sil_idx = []
+    alive = None
+    if args.silence:
+        ct = a['cell_type'].fillna(a['hemibrain_type']).fillna('').astype(str)
+        sil_idx = np.nonzero(ct.str.startswith(args.silence).to_numpy())[0].tolist()
+        if not sil_idx:
+            raise SystemExit(f'no neuron matches --silence {args.silence!r}')
+        print(f'silencing {len(sil_idx)} neurons with type prefix {args.silence!r}')
+        alive = torch.ones(1, n, device=dev)
+        alive[0, sil_idx] = 0
     model = TorchModel(1, n, DT, MODEL_PARAMS, weights, exc_indices=exc_idx, device=dev)
     state = model.state_init()
     rates = torch.zeros(1, n, device=dev)
@@ -74,6 +91,8 @@ def main():
         with torch.no_grad():
             for step in tqdm(range(steps), ncols=90, unit='step'):
                 st = model(rates, *st, generator=gen)
+                if alive is not None:
+                    st = (st[0], st[1], st[2] * alive, st[3], st[4])
                 idx = st[2][0].nonzero(as_tuple=True)[0]
                 if idx.numel():
                     n_list.append(idx.cpu())
@@ -99,9 +118,6 @@ def main():
           f'{(np.bincount(sp_n, minlength=n) > 0).sum()} active neurons')
 
     # ---- annotations & coordinates ----
-    ann = pd.read_csv(ANN_PATH, sep='\t', low_memory=False).set_index('root_id')
-    ids = np.array([i2flyid[i] for i in range(n)], dtype=np.int64)
-    a = ann.reindex(ids)
     xyz = a[['pos_x', 'pos_y', 'pos_z']].to_numpy(dtype=np.float32)
     xyz *= np.array([4, 4, 40], np.float32) / 1000.0          # voxels -> microns
     missing = np.isnan(xyz).any(axis=1)
@@ -131,13 +147,15 @@ def main():
     trace_info = [dict(info(i), idx=int(i), stim=(i in set(exc_idx))) for i in trace_idx]
 
     order = np.argsort(sp_t, kind='stable')
+    tag = f' + {args.silence} silenced' if args.silence else ''
     payload = {
-        'exp': exp['name'],
+        'exp': exp['name'] + tag,
         'n': int(n),
         'dt': DT,
         'steps': steps,
         'stim_rate': exp['stim_rate'],
         'stim_idx': [int(i) for i in exc_idx],
+        'sil_idx': sil_idx,
         'classes': classes,
         'pos_b64': b64(xyz.astype(np.float32)),
         'sc_b64': b64(sc),
@@ -151,7 +169,7 @@ def main():
     }
     html = TEMPLATE.read_text(encoding='utf-8').replace(
         '/*__DATA__*/null', json.dumps(payload))
-    out = ROOT / 'experiments/out' / f'brain3d_{args.exp}.html'
+    out = ROOT / 'experiments/out' / f'brain3d_{args.exp}{"_no" + args.silence.lower() if args.silence else ""}.html'
     out.parent.mkdir(exist_ok=True)
     out.write_text(html, encoding='utf-8')
     print(f'wrote {out}  ({out.stat().st_size/2**20:.1f} MB)')
