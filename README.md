@@ -143,7 +143,6 @@ GPL-2.0-or-later（见 [LICENSE](LICENSE)）。上游 © Eon Systems PBC；Shiu 
 <div align="center">
 <img src="docs/assets/ai_viola_fly.png" alt="Viola smiling at a fruit fly on her fingertip" width="70%">
 
-*"这么小一只，脑子里有 13.8 万个神经元。"——本项目的全部野心，都在她指尖上*
 </div>
 
 ---
@@ -282,5 +281,4 @@ GPL-2.0-or-later (see [LICENSE](LICENSE)). Upstream © Eon Systems PBC; original
 <div align="center">
 <img src="docs/assets/ai_viola_fly.png" alt="Viola smiling at a fruit fly on her fingertip" width="70%">
 
-*"138,639 neurons in a brain this small." — the whole ambition of this project, resting on her fingertip*
 </div>
