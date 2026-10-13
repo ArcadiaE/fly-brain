@@ -165,7 +165,7 @@ This repository is a research fork of [eonsystemspbc/fly-brain](https://github.c
 <div align="center">
 <img src="docs/assets/ai_fly_macro.png" alt="AI-generated macro-photography style image: a fruit fly on a dewy grass blade" width="70%">
 
-*The protagonist of this project — *Drosophila melanogaster* (AI-generated macro-photography style, not a real photo)*
+*The protagonist of this project — <i>Drosophila melanogaster</i> (AI-generated macro-photography style, not a real photo)*
 *本项目的主角——果蝇（AI 生成微距摄影风，非真实照片）*
 </div>
 
