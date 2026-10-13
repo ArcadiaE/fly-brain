@@ -141,9 +141,9 @@ GPL-2.0-or-later（见 [LICENSE](LICENSE)）。上游 © Eon Systems PBC；Shiu 
 [返回目录](#zh)
 
 <div align="center">
-<img src="docs/assets/ai_viola_ignition.png" alt="Viola's ignition declaration" width="70%">
+<img src="docs/assets/ai_viola_fly.png" alt="Viola smiling at a fruit fly on her fingertip" width="70%">
 
-*提问！给 13.8 万个神经元点火之后会怎么样呢？三、二、一——自己跑 `run_live.bat` 看！*
+*"这么小一只，脑子里有 13.8 万个神经元。"——本项目的全部野心，都在她指尖上*
 </div>
 
 ---
@@ -280,7 +280,7 @@ GPL-2.0-or-later (see [LICENSE](LICENSE)). Upstream © Eon Systems PBC; original
 [Back to contents](#en)
 
 <div align="center">
-<img src="docs/assets/ai_viola_ignition.png" alt="Viola's ignition declaration" width="70%">
+<img src="docs/assets/ai_viola_fly.png" alt="Viola smiling at a fruit fly on her fingertip" width="70%">
 
-*Pop quiz! What happens when you ignite 138,639 neurons? Three, two, one — run `run_live.bat` and watch it burn!*
+*"138,639 neurons in a brain this small." — the whole ambition of this project, resting on her fingertip*
 </div>
