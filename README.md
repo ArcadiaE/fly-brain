@@ -21,7 +21,7 @@
 <a id="zh-intro"></a>
 ## 项目简介
 
-这个仓库在一张 6 GB 的游戏显卡上实时跑完果蝇全脑模型的仿真：138,639 个神经元、约 1500 万个突触，0.5 秒的脑活动 0.98 秒算完，是上游 PyTorch 后端速度的 27 倍。
+这个仓库在一张 6 GB 的游戏显卡上实时跑完果蝇全脑模型的仿真。模型有 138,639 个神经元、约 1500 万个突触，0.5 秒的脑活动 0.98 秒算完，是上游 PyTorch 后端速度的 27 倍。
 
 仓库 fork 自 [eonsystemspbc/fly-brain](https://github.com/eonsystemspbc/fly-brain)（Eon Systems PBC）。上游实现了 Shiu et al. 2024 发表在 [Nature](https://www.nature.com/articles/s41586-024-07763-9) 的果蝇全脑渗漏积分发放模型，连接组数据来自 [FlyWire](https://flywire.ai/) v783 公开版。模型支持对任意神经元集合做激活或沉默，看脉冲怎么在全脑传播，上游还提供了 Brian2、Brian2CUDA、PyTorch、NEST GPU、GeNN、Brian2GeNN 六个后端的统一基准。本分支在其上加了第七个后端 FastBrain，以及一套能在浏览器里边跑边看的实时控制台。
 
@@ -48,7 +48,7 @@
 <a id="zh-results"></a>
 ## 核心结果
 
-糖味觉 GRN 200 Hz 刺激，仿真时长 0.5 s，硬件为 RTX 3060 Laptop（6 GB 显存）：
+糖味觉 GRN 200 Hz 刺激，仿真时长 0.5 s，硬件为 RTX 3060 Laptop（6 GB 显存）。
 
 | 后端 | 运行次数 | 仿真耗时 | 实时比 |
 |---|---|---|---|
@@ -60,7 +60,7 @@
 
 <img src="docs/assets/chart_speed.png" alt="Benchmark chart" width="100%">
 
-速度不能以牺牲精度为代价。验证矩阵覆盖 2 种刺激 × 2 种时长 × 5 个种子 × 3 种 dt，FastBrain 与参考实现的差异在所有指标上都落在参考模型自身的种子噪声之内：放电率相关系数 0.990，参考模型自身换种子的噪声地板是 0.991。10 秒长程仿真无漂移。下图是糖刺激实验的全脑脉冲栅格，完整验证数据见[展示页](https://arcadiae.github.io/fly-brain/)。
+精度单独做了验证。验证矩阵覆盖 2 种刺激 × 2 种时长 × 5 个种子 × 3 种 dt，FastBrain 与参考实现的差异在所有指标上都落在参考模型自身的种子噪声之内。放电率相关系数 0.990，参考模型自身换种子的噪声地板是 0.991。10 秒长程仿真无漂移。下图是糖刺激实验的全脑脉冲栅格，完整验证数据见[展示页](https://arcadiae.github.io/fly-brain/)。
 
 <img src="docs/assets/raster_sugar.png" alt="Spike raster of the sugar experiment" width="100%">
 
@@ -127,9 +127,9 @@ fly-brain/
 <a id="zh-roadmap"></a>
 ## 研究路线
 
-- Phase 0（已完成）：引擎系统验证，结果见上方核心结果。
-- Phase 1（进行中）：把脉冲全脑模型和公开钙成像数据做动力学级基准（DANDI [001869](https://dandiarchive.org/dandiset/001869)、Aimon 2019 CRCNS），并对已发表结论做敏感性和 null 审计。
-- Phase 2（待定）：贝叶斯优化刺激逆向设计，或把蘑菇体学习嵌入全脑。
+- Phase 0 已完成，内容是引擎系统验证，结果见上方核心结果。
+- Phase 1 进行中，把脉冲全脑模型和公开钙成像数据做动力学级基准（DANDI [001869](https://dandiarchive.org/dandiset/001869)、Aimon 2019 CRCNS），并对已发表结论做敏感性和 null 审计。
+- Phase 2 待定，候选方向是贝叶斯优化刺激逆向设计，或把蘑菇体学习嵌入全脑。
 
 每条结论都要带 degree-matched 重连 null 对照，这是这个仓库的硬性规矩。详细情报见 [experiments/RESEARCH.md](experiments/RESEARCH.md)。
 
@@ -166,7 +166,7 @@ GPL-2.0-or-later（见 [LICENSE](LICENSE)）。上游 © Eon Systems PBC；Shiu 
 <a id="en-intro"></a>
 ## Introduction
 
-This repository simulates the whole fruit-fly brain in real time on a 6 GB gaming GPU: 138,639 neurons and about 15 million synapses, with 0.5 s of brain activity computed in 0.98 s — 27 times faster than the upstream PyTorch backend.
+This repository simulates the whole fruit-fly brain in real time on a 6 GB gaming GPU. The model has 138,639 neurons and about 15 million synapses, and 0.5 s of brain activity computes in 0.98 s, 27 times faster than the upstream PyTorch backend.
 
 It is a fork of [eonsystemspbc/fly-brain](https://github.com/eonsystemspbc/fly-brain) (Eon Systems PBC). The upstream implements the whole-brain leaky integrate-and-fire model from Shiu et al. 2024 ([Nature](https://www.nature.com/articles/s41586-024-07763-9)), built on the public [FlyWire](https://flywire.ai/) v783 connectome. The model can activate or silence arbitrary neuron sets and shows how spikes propagate across the brain, and upstream ships a unified benchmark across six backends: Brian2, Brian2CUDA, PyTorch, NEST GPU, GeNN and Brian2GeNN. This fork adds a seventh backend, FastBrain, plus a live console that lets you watch and perturb the running simulation in a browser.
 
@@ -186,7 +186,7 @@ It is a fork of [eonsystemspbc/fly-brain](https://github.com/eonsystemspbc/fly-b
 | Systematic validation `experiments/validate_matrix.py` | Full stimulus × duration × seed × dt matrix, with a seed-noise floor and a 10 s drift check |
 | Live console `experiments/live_server.py` | Watch whole-brain firing in a browser while you stimulate, silence, probe, pause and reset; see the [console guide](experiments/LIVE_CONSOLE.md) |
 | 3D replay `experiments/export_3d.py` | Exports a run as a single-file HTML with neuron coordinates, spike animation and voltage traces (`run_replay.bat`) |
-| Project site [`docs/index.html`](docs/index.html) | Public showcase page with interactive demos, [open online](https://arcadiae.github.io/fly-brain/) |
+| Project site [`docs/index.html`](docs/index.html) | Public demo page with interactive replays, [open online](https://arcadiae.github.io/fly-brain/) |
 
 [Back to contents](#en)
 
@@ -205,7 +205,7 @@ The chart below compares all backends. PyTorch needs 26 seconds for half a secon
 
 <img src="docs/assets/chart_speed.png" alt="Benchmark chart" width="100%">
 
-Speed is useless if accuracy slips. The validation matrix covers 2 stimuli × 2 durations × 5 seeds × 3 dt values, and on every metric the difference between FastBrain and the reference stays inside the reference model's own seed noise: firing-rate correlation 0.990, against a seed-noise floor of 0.991 for the reference itself. No drift over a 10 s run. Below is the whole-brain spike raster of the sugar experiment; full validation data is on the [project site](https://arcadiae.github.io/fly-brain/).
+Accuracy is validated separately. The validation matrix covers 2 stimuli × 2 durations × 5 seeds × 3 dt values, and on every metric the difference between FastBrain and the reference stays inside the reference model's own seed noise. Firing-rate correlation is 0.990, against a seed-noise floor of 0.991 for the reference itself. No drift over a 10 s run. Below is the whole-brain spike raster of the sugar experiment; full validation data is on the [project site](https://arcadiae.github.io/fly-brain/).
 
 <img src="docs/assets/raster_sugar.png" alt="Spike raster of the sugar experiment" width="100%">
 
@@ -225,7 +225,7 @@ Full usage and reproduction steps are in [experiments/LIVE_CONSOLE.md](experimen
 
 ```bash
 conda env create -f environment.yml && conda activate brain-fly   # full backends (Linux/WSL2)
-# minimal Windows env: Python 3.10 venv + torch(cu126) + brian2 — see experiments/NOTES.md
+# minimal Windows env: Python 3.10 venv + torch(cu126) + brian2, see experiments/NOTES.md
 
 python main.py --fastbrain --t_run 0.5 --n_run 1          # FastBrain benchmark
 python experiments/validate_matrix.py --quick             # validation (smoke)
@@ -253,9 +253,9 @@ fly-brain/
 │   ├── live_server.py          # Live console server
 │   ├── LIVE_CONSOLE.md         # Console usage guide
 │   ├── NOTES.md                # Lab notebook (all performance/accuracy numbers)
-│   └── RESEARCH.md             # Research landscape recon & roadmap
+│   └── RESEARCH.md             # Research survey & roadmap
 ├── docs/
-│   ├── index.html              # Project showcase site
+│   ├── index.html              # Project site
 │   └── assets/                 # Data figures, screenshots & illustrations
 └── data/                       # FlyWire v783 data, benchmark results, spike parquets
 ```

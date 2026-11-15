@@ -16,7 +16,7 @@
 <a id="zh-what"></a>
 ## 这是什么
 
-控制台把果蝇全脑模型跑在本地 GPU 上，通过浏览器实时展示：138,639 个神经元的每一次放电都会变成三维脑图里的一个亮点，延迟在一帧以内。你可以边跑边干预，给任意细胞类型加刺激、给任意神经元挂膜电位探针、暂停、重置，所有操作下一个仿真块就生效。
+控制台把果蝇全脑模型跑在本地 GPU 上，通过浏览器实时展示。138,639 个神经元的每一次放电都会变成三维脑图里的一个亮点，延迟在一帧以内。你可以边跑边干预，给任意细胞类型加刺激，给任意神经元挂膜电位探针，暂停，重置，所有操作下一个仿真块就生效。
 
 在 RTX 3060 Laptop（6 GB 显存）上，默认的 fast 内核以 dt 0.25 ms 跑到约 0.4 倍实时，显存占用约 0.45 GB。更快的显卡会更接近甚至超过实时。
 
@@ -25,7 +25,7 @@
 <a id="zh-start"></a>
 ## 启动
 
-最简单的办法是双击仓库根目录的 `run_live.bat`，它会启动服务并自动打开浏览器。也可以手动执行：
+最简单的办法是双击仓库根目录的 `run_live.bat`，它会启动服务并自动打开浏览器。也可以手动执行这条命令。
 
 ```bash
 .venv/Scripts/python.exe experiments/live_server.py --port 8766
@@ -40,16 +40,16 @@
 <a id="zh-ui"></a>
 ## 界面导览
 
-页面分三块：左侧控制栏、中间三维脑图、底部示波器和日志。
+页面分三块，左侧是控制栏，中间是三维脑图，底部是示波器和日志。
 
 <img src="../docs/assets/console_scope.png" alt="控制台界面：左侧控制栏，中间全脑三维动画，底部示波器显示 8 个探针的膜电位" width="100%">
 
-左侧栏从上到下依次是：
+左侧栏从上到下的内容如下。
 
 | 区域 | 作用 |
 |---|---|
 | 运行 | 暂停、继续、重置状态、清空刺激；显示脑时间、实时比、每步 GPU 耗时、累计放电神经元数 |
-| 预设实验 | 一键施加论文用过的刺激，目前有两个：糖味觉 GRN 200 Hz、P9 前行 100 Hz |
+| 预设实验 | 一键施加论文用过的刺激，目前有糖味觉 GRN 200 Hz 和 P9 前行 100 Hz 两个 |
 | 按细胞类型刺激 | 搜索 8,861 种细胞类型中的任意一种，按频率和左右侧施加刺激 |
 | 当前刺激 | 列出正在受刺激的神经元组，可整组移除 |
 | 示波器探针 | 列出已挂探针的神经元，最多 16 个 |
@@ -64,7 +64,7 @@
 <a id="zh-first"></a>
 ## 做第一个实验
 
-以"果蝇尝到糖"为例，完整流程是：
+以糖刺激实验为例，完整流程如下。
 
 1. 点预设实验里的 **Sugar GRNs (200 Hz)**。21 个糖味觉感受神经元开始以 200 Hz 被注入泊松脉冲，脑图上红色标记的就是它们，位于脑部腹侧的食道下区。
 2. 等几十秒脑时间，看放电从感受神经元传播到中枢。左栏"累计放电神经元"会涨到几百个。
@@ -107,9 +107,9 @@
 <a id="zh-api"></a>
 ## 用脚本控制大脑
 
-控制台的所有功能走的是 WebSocket，地址 `ws://127.0.0.1:8766/ws`。写脚本连上它，就能在做实验、训练 agent 或者 vibe coding 的时候实时读大脑状态、施加干预。协议很简单：
+控制台的所有功能走的是 WebSocket，地址 `ws://127.0.0.1:8766/ws`。写脚本连上它，就能在做实验、训练 agent 或者 vibe coding 的时候实时读大脑状态、施加干预。协议很简单。
 
-客户端发 JSON 命令，常用的是：
+客户端发 JSON 命令，常用的如下。
 
 | 命令 | 参数 | 作用 |
 |---|---|---|
@@ -122,14 +122,14 @@
 | `speed` | `value` | 改速度上限 |
 | `search` | `q` | 搜索细胞类型 |
 
-服务器每个仿真块推一帧二进制：20 字节头（步数、放电数、探针数、块内步数、每步微秒数），后面跟着本块放过电的神经元序号和每个探针每一步的膜电位。仓库里没有现成的客户端库，直接用 Python 的 aiohttp 或 websockets 连，几十行就能跑通。
+服务器每个仿真块推一帧二进制。帧的开头是 20 字节的头，依次是步数、放电数、探针数、块内步数、每步微秒数，后面跟着本块放过电的神经元序号和每个探针每一步的膜电位。仓库里没有现成的客户端库，直接用 Python 的 aiohttp 或 websockets 连，几十行就能写好。
 
 [返回目录](#zh)
 
 <a id="zh-replay"></a>
 ## 导出 3D 回放
 
-想把一次实验分享给别人看，用 `run_replay.bat` 或手动执行：
+想把一次实验分享给别人看，用 `run_replay.bat`，或者手动执行下面两条命令。
 
 ```bash
 .venv/Scripts/python.exe experiments/export_3d.py --exp sugar --t 1.0
@@ -153,7 +153,7 @@
 
 **速度达不到 1 倍实时。** 这是显卡算力决定的，不是故障。RTX 3060 Laptop 约 0.4 倍实时，把速度上限调到"不限"就是全速。dt 0.25 比 dt 0.1 快约 2.5 倍。
 
-**端口被占用。** 换一个端口：`--port 8800`。
+**端口被占用。** 换一个端口，比如 `--port 8800`。
 
 [返回目录](#zh)
 
@@ -167,7 +167,7 @@
 <a id="en-what"></a>
 ## What this is
 
-The console runs the whole fly-brain model on your local GPU and shows it live in a browser: every spike of all 138,639 neurons becomes a flash in a 3D brain view within one frame. You can intervene while it runs: stimulate any cell type, attach membrane-voltage probes to any neuron, pause and reset. Every action takes effect on the next simulation block.
+The console runs the whole fly-brain model on your local GPU and shows it live in a browser. Every spike of all 138,639 neurons becomes a flash in a 3D brain view within one frame. You can intervene while it runs, stimulating any cell type, attaching membrane-voltage probes to any neuron, pausing and resetting. Every action takes effect on the next simulation block.
 
 On an RTX 3060 Laptop (6 GB VRAM) the default fast kernel runs at about 0.4× real time with dt 0.25 ms, using roughly 0.45 GB of VRAM. Faster GPUs get closer to, or past, real time.
 
@@ -176,7 +176,7 @@ On an RTX 3060 Laptop (6 GB VRAM) the default fast kernel runs at about 0.4× re
 <a id="en-start"></a>
 ## Launch
 
-The easiest way is to double-click `run_live.bat` in the repository root; it starts the server and opens the browser for you. You can also run it by hand:
+The easiest way is to double-click `run_live.bat` in the repository root; it starts the server and opens the browser for you. You can also run it by hand with one command.
 
 ```bash
 .venv/Scripts/python.exe experiments/live_server.py --port 8766
@@ -191,11 +191,11 @@ The first launch loads the connectome and builds the CUDA graph, which takes a m
 <a id="en-ui"></a>
 ## Interface tour
 
-The page has three parts: a control sidebar on the left, the 3D brain in the middle, and an oscilloscope plus log at the bottom.
+The page has three parts, a control sidebar on the left, the 3D brain in the middle, and an oscilloscope plus log at the bottom.
 
 <img src="../docs/assets/console_scope.png" alt="Console interface: control sidebar, 3D whole-brain animation, oscilloscope with 8 voltage probes" width="100%">
 
-The sidebar, from top to bottom:
+The sidebar, from top to bottom.
 
 | Section | What it does |
 |---|---|
@@ -215,7 +215,7 @@ The oscilloscope draws the last 200 ms of membrane voltage for each probe: resti
 <a id="en-first"></a>
 ## Your first experiment
 
-Using "the fly tastes sugar" as the example:
+Take the sugar experiment as the example. The full sequence is below.
 
 1. Click **Sugar GRNs (200 Hz)** in the preset section. 21 sugar gustatory receptor neurons start receiving 200 Hz Poisson input; they are marked red, in the subesophageal zone on the ventral side of the brain.
 2. Let it run for tens of seconds of brain time and watch the activity spread into the central brain. The "total neurons fired" counter climbs to a few hundred.
@@ -260,7 +260,7 @@ The **⛶ 全屏看脑** (fullscreen) button in the upper left of the brain view
 
 Everything the console does goes through a WebSocket at `ws://127.0.0.1:8766/ws`. Connect from a script and you can read brain state and apply interventions in real time, which is handy for experiments, agent training, or vibe coding. The protocol is small.
 
-The client sends JSON commands:
+The client sends JSON commands. The common ones are listed below.
 
 | Command | Arguments | Effect |
 |---|---|---|
@@ -273,14 +273,14 @@ The client sends JSON commands:
 | `speed` | `value` | Change the speed cap |
 | `search` | `q` | Search cell types |
 
-The server pushes one binary frame per simulation block: a 20-byte header (step, spike count, probe count, steps per block, microseconds per step), followed by the indices of neurons that spiked and the per-step voltages of every probe. There is no client library in the repo; connecting with Python's aiohttp or websockets takes a few dozen lines.
+The server pushes one binary frame per simulation block. The first 20 bytes are a header holding step, spike count, probe count, steps per block and microseconds per step, followed by the indices of neurons that spiked and the per-step voltages of every probe. There is no client library in the repo; connecting with Python's aiohttp or websockets takes a few dozen lines.
 
 [Back to contents](#en)
 
 <a id="en-replay"></a>
 ## Export a 3D replay
 
-To share an experiment with someone, use `run_replay.bat` or run:
+To share an experiment with someone, use `run_replay.bat` or run these two commands.
 
 ```bash
 .venv/Scripts/python.exe experiments/export_3d.py --exp sugar --t 1.0
