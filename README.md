@@ -133,9 +133,6 @@ fly-brain/
 
 每条结论都要带 degree-matched 重连 null 对照，这是这个仓库的硬性规矩。详细情报见 [experiments/RESEARCH.md](experiments/RESEARCH.md)。
 
-<div align="center">
-<img src="docs/assets/ai_robot_embodied.png" alt="Concept: fly-brain-driven robot" width="70%">
-</div>
 
 [返回目录](#zh)
 
@@ -274,9 +271,6 @@ The model uses the public FlyWire connectome v783. Benchmark outputs live in `da
 
 Every claim in this repo ships with degree-matched rewired null controls; that is a hard rule here. Full recon is in [experiments/RESEARCH.md](experiments/RESEARCH.md).
 
-<div align="center">
-<img src="docs/assets/ai_robot_embodied.png" alt="Concept: fly-brain-driven robot" width="70%">
-</div>
 
 [Back to contents](#en)
 
