@@ -146,10 +146,6 @@ GPL-2.0-or-later（见 [LICENSE](LICENSE)）。上游 © Eon Systems PBC；Shiu 
 
 [返回目录](#zh)
 
-<div align="center">
-<img src="docs/assets/ai_viola_fly.png" alt="Viola smiling at a fruit fly on her fingertip" width="70%">
-</div>
-
 ---
 
 <div align="center">
